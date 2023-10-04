@@ -1,0 +1,56 @@
+version: '3.3'
+services:
+  mercury_api:
+    restart: always
+    image: mercury_api:latest
+    networks:
+      - mercury_api
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      target: api
+    env_file: 
+      - .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mercury_cache
+      - mercury_db
+      - mercury_migrate
+  mercury_cache:
+    image: redis:6.2.6
+    restart: always
+    container_name: mercury_cache
+    networks:
+      - mercury_api
+  mercury_migrate:
+    image: flyway/flyway:7.15.0
+    container_name: mercury_migrate
+    command: -mixed=true -url="jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}" -user="${POSTGRES_USER}" -password="${POSTGRES_PASSWORD}" migrate
+    volumes:
+      - ./src/migrations:/flyway/sql
+    env_file:
+      - .env
+    depends_on:
+      - mercury_db
+    networks:
+      - mercury_api
+  mercury_db:
+    image: postgres:13
+    container_name: mercury_db
+    ports:
+      - 5432:5432
+    restart: always
+    volumes:
+      - mercurydb:/var/lib/postgresql/data
+    env_file:
+      - .env
+    networks:
+      - mercury_api
+
+volumes:
+  mercurydb:
+
+networks:
+  mercury_api:
+    driver: bridge

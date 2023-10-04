@@ -1,0 +1,11 @@
+fastapi[all]
+requests
+uvicorn[standard]
+redis
+SQLAlchemy
+fastapi-utils
+psycopg2
+bcrypt
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
