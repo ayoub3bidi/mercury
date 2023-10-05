@@ -1,4 +1,4 @@
-from api import user
+from api import user, health
 import auth_guard
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -36,6 +36,6 @@ if os.getenv('APP_ENV') == 'local':
         allow_headers=["*"],
     )
 
-# app.include_router(health.router, tags=['Information'], prefix='/v1')
+app.include_router(health.router, tags=['Information'], prefix='/v1')
 app.include_router(auth_guard.router, tags=['Access Token'], prefix='/v1')
 app.include_router(user.router, tags=['User'], prefix='/v1/user')
