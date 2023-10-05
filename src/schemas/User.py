@@ -1,13 +1,5 @@
-from datetime import datetime
-from typing import List, Optional, Union
+from typing import Optional
 from pydantic import BaseModel
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-class TokenData(BaseModel):
-    email: Union[str, None] = None
 
 class UserSchema(BaseModel):
     username: str

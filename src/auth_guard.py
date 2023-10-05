@@ -1,7 +1,7 @@
 from datetime import timedelta
 from typing import Annotated
-from api.user import authenticate_user, create_access_token, verify_password
-import models
+from api.user import create_access_token, verify_password
+from models.User import User
 import schemas
 from sqlalchemy.orm import Session
 from fastapi import Depends, HTTPException, status
@@ -10,6 +10,9 @@ import os
 from jose import JWTError, jwt
 from fastapi import Depends, HTTPException, status, APIRouter
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+
+from schemas.Token import TokenData, Token
+from schemas.User import UserSchema
 
 router = APIRouter()
 
@@ -30,22 +33,22 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
         email: str = payload.get("sub")
         if email is None:
             raise credentials_exception
-        token_data = schemas.TokenData(email=email)
+        token_data = TokenData(email=email)
     except JWTError:
         raise credentials_exception
-    user = db.query(models.User).filter(models.User.email == token_data.email).first()
+    user = db.query(User).filter(User.email == token_data.email).first()
     if user is None:
         raise credentials_exception
     return user
 
-async def get_current_active_user(current_user: schemas.UserSchema = Depends(get_current_user)):
+async def get_current_active_user(current_user: UserSchema = Depends(get_current_user)):
     if current_user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
 
-@router.post("/token", response_model=schemas.Token)
+@router.post("/token", response_model=Token)
 def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.email == form_data.username).first()
+    user = db.query(User.User).filter(User.User.email == form_data.username).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invalid credentials")
     if not verify_password(form_data.password, user.password):

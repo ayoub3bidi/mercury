@@ -5,8 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 import redis
 from fastapi.openapi.utils import get_openapi
-import models
-from database import dbEngine
+from database import dbEngine, Base
 
 def custom_openapi():
     if app.openapi_schema:
@@ -20,7 +19,7 @@ def custom_openapi():
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 
-models.Base.metadata.create_all(bind=dbEngine)
+Base.metadata.create_all(bind=dbEngine)
 redis_host = os.getenv('REDIS_HOST')
 redis_client = redis.Redis(host=redis_host, port=6379)
 
