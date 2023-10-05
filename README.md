@@ -1,10 +1,10 @@
-# ⚡️ Mercury ⚡️ 
+# Mercury ⚡️ 
 A FastApi template with PostgreSQL & Redis.
 
 ## Prepare configurations
 
 ```shell
-cp .env.dist .env # replace your variables in the .env file you just created
+cp .env.dist .env
 ```
 
 ## Run the containers
@@ -23,7 +23,7 @@ Type "help" for help.
 
 ## Test the API
 
-You can print the Swagger doc here: http://localhost:8000
+You can check the Swagger doc here: http://localhost:8000
 
 ```shell
 $ curl localhost:5002/v1/health
