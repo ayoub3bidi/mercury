@@ -1,7 +1,7 @@
 from datetime import timedelta
 from sqlalchemy.orm import Session
 from fastapi import Depends, HTTPException, status, APIRouter
-from database import get_db
+from database.postgres_db import get_db
 import os
 from models.User import User
 from schemas.User import UserLoginSchema, UserSchema

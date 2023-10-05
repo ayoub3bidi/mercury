@@ -3,7 +3,7 @@ from typing import Annotated
 from models.User import User
 from sqlalchemy.orm import Session
 from fastapi import Depends, HTTPException, status
-from database import get_db
+from database.postgres_db import get_db
 import os
 from jose import JWTError, jwt
 from fastapi import Depends, HTTPException, status, APIRouter

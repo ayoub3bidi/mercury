@@ -1,5 +1,5 @@
 import uuid
-from database import Base
+from database.postgres_db import Base
 from sqlalchemy import Column, Integer, String, Boolean, Numeric
 from sqlalchemy.sql import func
 from fastapi_utils.guid_type import GUID, GUID_SERVER_DEFAULT_POSTGRESQL
