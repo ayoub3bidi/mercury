@@ -1,13 +1,11 @@
-from datetime import datetime, timedelta
-from typing import Union
+from datetime import timedelta
 from sqlalchemy.orm import Session
 from fastapi import Depends, HTTPException, status, APIRouter
 from database import get_db
 import os
-from jose import jwt
 from models.User import User
 from schemas.User import UserLoginSchema, UserSchema
-from utils.security import get_password_hash, verify_password
+from utils.security import create_access_token, get_password_hash, verify_password
 
 
 router = APIRouter()
@@ -15,17 +13,6 @@ router = APIRouter()
 JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY')
 JWT_ALGORITHM = os.getenv('JWT_ALGORITHM')
 ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES')
-
-
-def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None):
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
-    return encoded_jwt
 
 def authenticate_user(payload, db):
     user = db.query(User).filter(User.email == payload.email).first()

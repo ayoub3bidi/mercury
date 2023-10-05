@@ -1,5 +1,5 @@
 from routes import user, health
-import auth_guard
+import middleware.auth_guard as auth_guard
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
