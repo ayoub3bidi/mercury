@@ -1,8 +1,7 @@
 from datetime import timedelta
 from typing import Annotated
-from api.user import create_access_token, verify_password
+from routes.user import create_access_token
 from models.User import User
-import schemas
 from sqlalchemy.orm import Session
 from fastapi import Depends, HTTPException, status
 from database import get_db
@@ -13,6 +12,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 from schemas.Token import TokenData, Token
 from schemas.User import UserSchema
+from utils.security import verify_password
 
 router = APIRouter()
 
