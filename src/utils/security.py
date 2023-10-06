@@ -1,3 +1,4 @@
+import re
 from passlib.context import CryptContext
 import os
 from datetime import datetime, timedelta
@@ -7,8 +8,20 @@ from fastapi import HTTPException, status
 from models.User import User
 
 pwd_context = CryptContext(schemes=["sha256_crypt"], deprecated="auto")
+email_regex = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
+password_regex = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$"
 JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY')
 JWT_ALGORITHM = os.getenv('JWT_ALGORITHM')
+
+def validate_email(email):
+    if re.search(email_regex, email):
+        return True
+    return False
+
+def validate_password(password):
+    if re.search(password_regex, password):
+        return True
+    return False
 
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)

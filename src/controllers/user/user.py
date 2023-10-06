@@ -2,11 +2,15 @@ from datetime import timedelta
 import os
 from fastapi import HTTPException, status
 from models.User import User
-from utils.security import authenticate_user, create_access_token, get_password_hash
+from utils.security import authenticate_user, create_access_token, get_password_hash, validate_email, validate_password
 
 ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES')
 
 def register(payload, db):
+    if (validate_email(payload.email) == False):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid email")
+    if (validate_password(payload.password) == False):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid password")
     user = db.query(User).filter(User.email == payload.email).first()
     if user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
