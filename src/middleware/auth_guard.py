@@ -10,7 +10,7 @@ from fastapi import Depends, HTTPException, status, APIRouter
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 from schemas.Token import TokenData, Token
-from schemas.User import UserSchema
+from schemas.User import UserRegisterSchema
 from utils.security import create_access_token, verify_password
 
 router = APIRouter()
@@ -40,7 +40,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
         raise credentials_exception
     return user
 
-async def get_current_active_user(current_user: UserSchema = Depends(get_current_user)):
+async def get_current_active_user(current_user: UserRegisterSchema = Depends(get_current_user)):
     if current_user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user

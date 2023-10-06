@@ -1,7 +1,8 @@
 
 import os
-from routes import user, health
+from routes import health
 import middleware.auth_guard as auth_guard
+from routes.user import user
 
 v = os.environ['API_VERSION']
 

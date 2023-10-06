@@ -3,11 +3,12 @@ import os
 from datetime import datetime, timedelta
 from typing import Union
 from jose import jwt
+from fastapi import HTTPException, status
+from models.User import User
 
 pwd_context = CryptContext(schemes=["sha256_crypt"], deprecated="auto")
 JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY')
 JWT_ALGORITHM = os.getenv('JWT_ALGORITHM')
-ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES')
 
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
@@ -24,3 +25,11 @@ def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
     return encoded_jwt
+
+def authenticate_user(payload, db):
+    user = db.query(User).filter(User.email == payload.email).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invalid credentials")
+    if not verify_password(payload.password, user.password):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Incorrect password")
+    return user
