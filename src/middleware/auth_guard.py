@@ -45,9 +45,14 @@ async def get_current_active_user(current_user: UserRegisterSchema = Depends(get
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
 
+async def get_current_admin_user(current_user: UserRegisterSchema = Depends(get_current_user)):
+    if current_user.is_admin == False:
+        raise HTTPException(status_code=400, detail="User is not admin")
+    return current_user
+
 @router.post("/token", response_model=Token)
 def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: Session = Depends(get_db)):
-    user = db.query(User.User).filter(User.User.email == form_data.username).first()
+    user = db.query(User).filter(User.email == form_data.username).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invalid credentials")
     if not verify_password(form_data.password, user.password):
