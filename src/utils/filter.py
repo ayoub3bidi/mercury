@@ -6,3 +6,9 @@ def remove_password_from_users(users):
         user_dict.pop('password', None)
         user_dicts.append(user_dict)
     return user_dicts
+
+def remove_password_from_user(user):
+    user_dict = user.__dict__
+    user_dict.pop('_sa_instance_state', None)
+    user_dict.pop('password', None)
+    return user_dict
