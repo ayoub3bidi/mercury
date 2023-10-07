@@ -24,7 +24,11 @@ router = APIRouter(include_in_schema=False)
 
 @router.post("/token", response_model=Token)
 def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == form_data.username).first()
+    user_name_or_email = form_data.username
+    if '@' in user_name_or_email:
+        user = db.query(User).filter(User.email == form_data.username).first()
+    else:
+        user = db.query(User).filter(User.username == form_data.username).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invalid credentials")
     if not verify_password(form_data.password, user.password):
