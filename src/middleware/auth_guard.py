@@ -13,13 +13,33 @@ from schemas.Token import TokenData, Token
 from schemas.User import UserRegisterSchema
 from utils.security import create_access_token, verify_password
 
-router = APIRouter()
 
 JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY')
 JWT_ALGORITHM = os.getenv('JWT_ALGORITHM')
 ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES')
+v = os.environ['API_VERSION']
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="v1/token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f'/{v}/token')
+router = APIRouter(include_in_schema=False)
+
+@router.post("/token", response_model=Token)
+def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == form_data.username).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invalid credentials")
+    if not verify_password(form_data.password, user.password):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Incorrect password")
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token_expires = timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
+    access_token = create_access_token(
+        data={"sub": user.email}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
 
 async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     credentials_exception = HTTPException(
@@ -49,22 +69,3 @@ async def get_current_admin_user(current_user: UserRegisterSchema = Depends(get_
     if current_user.is_admin == False:
         raise HTTPException(status_code=400, detail="User is not admin")
     return current_user
-
-@router.post("/token", response_model=Token)
-def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == form_data.username).first()
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invalid credentials")
-    if not verify_password(form_data.password, user.password):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Incorrect password")
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    access_token_expires = timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
-    access_token = create_access_token(
-        data={"sub": user.email}, expires_delta=access_token_expires
-    )
-    return {"access_token": access_token, "token_type": "bearer"}
