@@ -5,7 +5,7 @@ from controllers.admin.user import add_user, delete_user, update_user
 from database.postgres_db import get_db
 from middleware.auth_guard import get_current_admin_user
 from models.User import User
-from schemas.User import UserSchema, UserAdminRegisterSchema
+from schemas.User import UserSchema, UserAdminRegisterSchema, UserAdminUpdateSchema
 from utils.filter import remove_password_from_users, remove_password_from_user
 
 router = APIRouter()
@@ -25,7 +25,7 @@ def register_user(current_user: Annotated[UserSchema, Depends(get_current_admin_
     return add_user(payload, db)
 
 @router.patch("/{user_id}", status_code=status.HTTP_200_OK)
-def update_user_by_id(current_user: Annotated[UserSchema, Depends(get_current_admin_user)], user_id: str, payload: UserAdminRegisterSchema, db: Session = Depends(get_db)):
+def update_user_by_id(current_user: Annotated[UserSchema, Depends(get_current_admin_user)], user_id: str, payload: UserAdminUpdateSchema, db: Session = Depends(get_db)):
     return update_user(user_id, payload, db)
 
 @router.delete("/{user_id}", status_code=status.HTTP_200_OK)
