@@ -1,8 +1,8 @@
 # Mercury
-<center>
-    <img src="./src/assets/mercury-logo.png"/> <br>
+<p align="center">
+    <img src="./src/assets/mercury-logo.png"/> <br/>
     A simple FastApi template.
-</center>
+</p>
 
 ## Main purpose of this project
 Mercury provide you a simple and reliable boilerplate that anyone can use from beginners to experts (no deep bullsh*t).   
