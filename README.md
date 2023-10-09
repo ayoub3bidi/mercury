@@ -74,3 +74,16 @@ CREATE TABLE IF NOT EXISTS public.test (
 );
 -- This is an example where we create a test table. The new file name will be "V1.3__add_test_table"
 ```
+## Integration tests
+Here's how to run the integration test locally:  
+
+```shell
+docker-compose up --build --abort-on-container-exit mercury_integration_tests
+```
+
+## Unit tests
+Here's how to run the integration test locally:  
+
+```shell
+docker-compose up --build --abort-on-container-exit mercury_unit_tests
+```

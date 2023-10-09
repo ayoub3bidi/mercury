@@ -21,3 +21,15 @@ COPY . /app/
 EXPOSE 8000
 
 CMD ["python", "src/app.py"]
+
+FROM api AS integration_tests
+
+WORKDIR /app/src/integration_tests
+
+CMD ["pytest"]
+
+FROM api AS unit_tests
+
+WORKDIR /app/src
+
+CMD ["python", "-m", "unittest", "discover", "-s", "./unit_tests", "-p", "test_*.py", "-v"]

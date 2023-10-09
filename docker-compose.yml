@@ -47,6 +47,20 @@ services:
       - .env
     networks:
       - mercury_api
+  mercury_integration_tests:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      target: integration_tests
+    env_file:
+      - .env
+  mercury_unit_tests:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      target: unit_tests
+    env_file:
+      - .env
 
 volumes:
   mercurydb:
