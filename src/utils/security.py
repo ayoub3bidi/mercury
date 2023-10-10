@@ -7,10 +7,9 @@ from jose import jwt
 from fastapi import HTTPException, status
 from models.User import User
 from database.postgres_db import SessionLocal
+from constants.regex import email_regex, password_regex
 
 pwd_context = CryptContext(schemes=["sha256_crypt"], deprecated="auto")
-email_regex = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
-password_regex = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$"
 
 admin_username = os.getenv('ADMIN_USERNAME')
 admin_email = os.getenv('ADMIN_EMAIL')
