@@ -10,7 +10,9 @@ from models.User import User
 from database.postgres_db import SessionLocal
 from constants.regex import email_regex, password_regex
 
-pwd_context = CryptContext(schemes=["sha256_crypt"], deprecated="auto")
+crypting_algorithm = "sha256_crypt" if JWT_ALGORITHM == "HS256" else "bcrypt"
+
+pwd_context = CryptContext(schemes=[crypting_algorithm], deprecated="auto")
 db = SessionLocal()
 
 def create_admin_user():
