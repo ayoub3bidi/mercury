@@ -5,10 +5,38 @@
 </p>
 
 ## Main purpose of this project
-Mercury provide you a simple and reliable boilerplate that anyone can use from beginners to experts (no deep bullsh*t).   
+Mercury is a simple and reliable boilerplate that anyone can use from beginners to experts (no deep bullsh*t).   
 
-This project uses basic [OAuth2]() authentication provided by FastApi security nested package, [PostgreSQL]() as its main database, [Redis]() for caching, and [flyway]() for database migration.
+This project uses:  
+- Basic [OAuth2](https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/?h=jwt) authentication provided by FastApi security nested package.
+- [PostgreSQL](https://hub.docker.com/_/postgres) as its main database, [Redis](https://hub.docker.com/_/redis) for caching, and [flyway](https://hub.docker.com/r/flyway/flyway) for database migration.
+- Unit and integration tests.
 
+### Project architecture
+```
+├── src
+│ └── assets
+│ └── controllers
+│     ├── admin
+│     ├── user
+│ └── database
+│     ├── postgres_db.py
+│     ├── redis_db.py
+│ └── integration_tests
+│ └── middleware
+│     ├── auth_guard.py
+│ └── migrations
+│ └── models
+│ └── routes
+│     ├── admin
+│     ├── user
+│ └── schemas
+│ └── unit_tests
+│ └── utils
+│ └── app.py
+│ └── main.py
+│ └── restful_ressources.py
+```
 ## Setup
 ### Environment variables
 
@@ -74,14 +102,15 @@ CREATE TABLE IF NOT EXISTS public.test (
 );
 -- This is an example where we create a test table. The new file name will be "V1.3__add_test_table"
 ```
-## Integration tests
+## Testing
+### Integration tests
 Here's how to run the integration test locally:  
 
 ```shell
 docker-compose up --build --abort-on-container-exit mercury_integration_tests
 ```
 
-## Unit tests
+### Unit tests
 Here's how to run the integration test locally:  
 
 ```shell
