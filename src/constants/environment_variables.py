@@ -1,0 +1,12 @@
+import os
+
+LISTEN_ADDR = os.environ['LISTEN_ADDR']
+LISTEN_PORT = os.environ['LISTEN_PORT']
+APP_VERSION = os.environ['APP_VERSION']
+APP_TITLE = os.environ['APP_TITLE']
+APP_DESCRIPTION = os.environ['APP_DESCRIPTION']
+APP_ENV = os.getenv('APP_ENV')
+JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY')
+JWT_ALGORITHM = os.getenv('JWT_ALGORITHM')
+ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES')
+v = os.environ['API_VERSION']

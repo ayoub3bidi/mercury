@@ -16,6 +16,7 @@ This project uses:
 ```
 ├── src
 │ └── assets
+│ └── constants
 │ └── controllers
 │     ├── admin
 │     ├── user

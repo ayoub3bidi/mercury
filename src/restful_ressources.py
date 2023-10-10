@@ -4,8 +4,7 @@ from routes import health
 import middleware.auth_guard as auth_guard
 from routes.user import user
 from routes.admin import user as admin_user
-
-v = os.environ['API_VERSION']
+from constants.environment_variables import v
 
 def import_resources(app):
     app.include_router(health.router, tags=['Information'], prefix=f'/{v}')

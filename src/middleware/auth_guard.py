@@ -1,5 +1,6 @@
 from datetime import timedelta
 from typing import Annotated
+from constants.environment_variables import ACCESS_TOKEN_EXPIRE_MINUTES, JWT_ALGORITHM, JWT_SECRET_KEY, v
 from models.User import User
 from sqlalchemy.orm import Session
 from fastapi import Depends, HTTPException, status
@@ -13,11 +14,6 @@ from schemas.Token import TokenData, Token
 from schemas.User import UserRegisterSchema
 from utils.security import create_access_token, verify_password
 
-
-JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY')
-JWT_ALGORITHM = os.getenv('JWT_ALGORITHM')
-ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES')
-v = os.environ['API_VERSION']
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f'/{v}/token')
 router = APIRouter(include_in_schema=False)
