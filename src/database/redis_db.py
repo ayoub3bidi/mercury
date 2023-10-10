@@ -1,9 +1,8 @@
-import os
 import redis
 
-redis_host = os.getenv('REDIS_HOST')
-redis_port = os.getenv('REDIS_PORT')
-redis_connect = redis.Redis(host=redis_host, port=redis_port)
+from constants.environment_variables import REDIS_HOST, REDIS_PORT
+
+redis_connect = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
 
 def init():
     global redis_client

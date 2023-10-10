@@ -1,11 +1,10 @@
 from datetime import timedelta
 import os
 from fastapi import HTTPException, status
+from constants.environment_variables import ACCESS_TOKEN_EXPIRE_MINUTES
 from models.User import User
 from utils.security import authenticate_user, create_access_token, get_password_hash, validate_email, validate_password
 from utils.variables import is_not_empty
-
-ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES')
 
 def register(payload, db):
     if (validate_email(payload.email) == False):
