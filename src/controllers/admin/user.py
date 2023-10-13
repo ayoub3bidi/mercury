@@ -61,6 +61,3 @@ def delete_user(user_id, db):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     db.delete(user)
     db.commit()
-    return {
-        "message": "user been deleted successfully"
-    }

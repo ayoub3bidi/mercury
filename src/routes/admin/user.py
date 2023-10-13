@@ -28,6 +28,6 @@ def register_user(current_user: Annotated[UserSchema, Depends(get_current_admin_
 def update_user_by_id(current_user: Annotated[UserSchema, Depends(get_current_admin_user)], user_id: str, payload: UserAdminUpdateSchema, db: Session = Depends(get_db)):
     return update_user(user_id, payload, db)
 
-@router.delete("/{user_id}", status_code=status.HTTP_200_OK)
+@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user_by_id(current_user: Annotated[UserSchema, Depends(get_current_admin_user)], user_id: str, db: Session = Depends(get_db)):
     return delete_user(user_id, db)
