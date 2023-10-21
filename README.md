@@ -89,7 +89,7 @@ Type "help" for help.
 You can check the Swagger documentation on http://localhost:8000.
 
 ```shell
-$ curl localhost:5002/v1/health
+$ curl localhost:8000/v1/health
 {"alive":true,"ip":"172.21.0.1","status":"ok"}
 ```
 
