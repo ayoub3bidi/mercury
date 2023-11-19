@@ -62,6 +62,9 @@ def update_user(current_user, payload, db):
         user.update({"email": payload.email})
     if payload.password:
         user.update({"password": get_password_hash(payload.password)})
+        
+    db.commit()
+    db.refresh(existing_user)
 
     return {
         "message": "your account has been updated successfully"
