@@ -1,0 +1,24 @@
+stages:
+  - test
+
+unit_test:
+  stage: test
+  script:
+    - setsid ./ci/unit-test.sh
+  only:
+    refs:
+      - /^(main|develop.*)$/
+      - merge_requests
+  tags:
+    - imagesbuilder
+
+integration_test:
+  stage: test
+  script:
+    - setsid ./ci/integration-test.sh
+  only:
+    refs:
+      - /^(main|develop.*)$/
+      - merge_requests
+  tags:
+    - imagesbuilder
