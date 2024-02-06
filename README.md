@@ -60,6 +60,7 @@ This project uses:
 ```shell
 cp .env.dist .env
 ```
+
 This will create a `.env` file in your project locally.
 
 ```shell
@@ -90,6 +91,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES=30
 ```
 
 ### Run the containers
+
 ```shell
 docker-compose up --build --force-recreate
 ```
@@ -101,7 +103,9 @@ You can check the Swagger documentation on [localhost:8000](http://localhost:800
 ```shell
 curl localhost:8000/v1/health
 ```
-This will check the health of the API. The result should be like this:  
+
+This will check the health of the API. The result should be like this:
+
 ```
 {"alive":true, "status":"ok"}
 ```
