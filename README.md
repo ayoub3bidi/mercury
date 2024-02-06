@@ -4,6 +4,12 @@
     A simple FastApi template.
 </p>
 
+<p align="center">
+    <img src="https://img.shields.io/badge/Made%20with-Python-1f425f.svg">
+    <img src="https://github.com/ayoub3bidi/mercury/workflows/CI/badge.svg">
+    <img src="https://img.shields.io/github/release/ayoub3bidi/mercury">
+</p>
+
 ## Table of content
 
 * [Introduction](#Introduction)
@@ -18,9 +24,9 @@
 Mercury is a simple and reliable boilerplate that anyone can use from beginners to experts (no deep bullsh*t).   
 
 This project uses:  
-- Basic [OAuth2](https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/?h=jwt) authentication provided by FastApi security nested package.
-- [PostgreSQL](https://hub.docker.com/_/postgres) as its main database, [Redis](https://hub.docker.com/_/redis) for caching, and [flyway](https://hub.docker.com/r/flyway/flyway) for database migration.
-- Unit and integration tests.
+- 🛡️ Basic [OAuth2](https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/?h=jwt) authentication provided by FastApi security nested package.
+- 🔋[PostgreSQL](https://hub.docker.com/_/postgres) as its main database, [Redis](https://hub.docker.com/_/redis) for caching, and [flyway](https://hub.docker.com/r/flyway/flyway) for database migration.
+- 🔋 Unit and integration tests.
 
 ### Project architecture
 
@@ -115,7 +121,20 @@ This will check the health of the API. The result should be like this:
 ## Test the database
 
 ```shell
-$ docker exec -it mercury_db psql -U mercury mercury
+docker exec -it mercury_db psql -U mercury
+```
+
+This command will take inside the postgreSQL database container where you can apply any SQL command you want.
+
+```
+psql (13.13 (Debian 13.13-1.pgdg120+1))
+Type "help" for help.
+
+mercury=# \d
+        List of relations
+ Schema | Name | Type  |  Owner  
+--------+------+-------+---------
+ public | user | table | mercury
 ```
 
 ## How to add new SQL migrations ?
@@ -151,4 +170,7 @@ Here's how to run the integration test locally:
 docker-compose up --build --abort-on-container-exit mercury_unit_tests
 ```
 -------
-All contributions are welcome !
+
+## Contributions
+
+All contributions are welcome! Give a ⭐️ if this project helped you!
