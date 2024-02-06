@@ -4,7 +4,17 @@
     A simple FastApi template.
 </p>
 
-## Main purpose of this project
+## Table of content
+
+* [Introduction](#Introduction)
+* [Setup](#setup)
+* [Test the API](#test-the-api)
+* [Test the database](#test-the-database)
+* [How to add new SQL migrations](#how-to-add-new-sql-migrations)
+* [Integration and Unit Testing](#integration-and-unit-testing)
+
+## Introduction
+
 Mercury is a simple and reliable boilerplate that anyone can use from beginners to experts (no deep bullsh*t).   
 
 This project uses:  
@@ -40,17 +50,6 @@ This project uses:
 │ └── restful_ressources.py
 ```
 
-## Test the API
-
-You can check the Swagger documentation on [localhost:8000](http://localhost:8000).
-
-```shell
-curl localhost:8000/v1/health
-```
-This will check the health of the API. The result should be like this:  
-```
-{"alive":true, "status":"ok"}
-```
 ## Setup
 ### Prerequisites
 
@@ -63,7 +62,7 @@ cp .env.dist .env
 ```
 This will create a `.env` file in your project locally.
 
-```s
+```shell
 APP_TITLE="Mercury API Docs"
 APP_DESCRIPTION="This is the Swagger documentation of the Mercury API"
 APP_VERSION=1.0
@@ -93,6 +92,18 @@ ACCESS_TOKEN_EXPIRE_MINUTES=30
 ### Run the containers
 ```shell
 docker-compose up --build --force-recreate
+```
+
+## Test the API
+
+You can check the Swagger documentation on [localhost:8000](http://localhost:8000).
+
+```shell
+curl localhost:8000/v1/health
+```
+This will check the health of the API. The result should be like this:  
+```
+{"alive":true, "status":"ok"}
 ```
 
 ## Test the database
