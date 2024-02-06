@@ -100,6 +100,8 @@ docker-compose up --build --force-recreate
 
 You can check the Swagger documentation on [localhost:8000](http://localhost:8000).
 
+![Swagger page](./swagger.png)
+
 ```shell
 curl localhost:8000/v1/health
 ```
