@@ -169,6 +169,18 @@ Here's how to run the integration test locally:
 ```shell
 docker-compose up --build --abort-on-container-exit mercury_unit_tests
 ```
+
+## Linter
+
+Having a fast linter can help avoiding coding style problems, and potentially avoid future bugs that takes long hours to fix.  
+For the linter we're working with [ruff](https://astral.sh/ruff), a very fast linter written in Rust.
+
+Here's how to run the linter test locally:
+
+```shell
+docker-compose up --build --abort-on-container-exit mercury_linter
+```
+
 -------
 
 ## Contributions

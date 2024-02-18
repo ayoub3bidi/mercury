@@ -45,9 +45,9 @@ def update_user(user_id, payload, db):
         user.update({"email": payload.email})
     if payload.password:
         user.update({"password": get_password_hash(payload.password)})
-    if payload.is_admin != None:
+    if payload.is_admin is not None:
         user.update({"is_admin": payload.is_admin})
-    if payload.disabled != None:
+    if payload.disabled is not None:
         User.disabled = user.disabled
         user.update({"disabled": payload.disabled})
         
