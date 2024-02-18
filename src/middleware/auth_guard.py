@@ -66,6 +66,6 @@ async def get_current_active_user(current_user: UserRegisterSchema = Depends(get
     return current_user
 
 async def get_current_admin_user(current_user: UserRegisterSchema = Depends(get_current_user)):
-    if current_user.is_admin == False:
+    if current_user.is_admin is False:
         raise HTTPException(status_code=400, detail="User is not admin")
     return current_user
