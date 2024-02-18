@@ -26,7 +26,7 @@ Mercury is a simple and reliable boilerplate that anyone can use from beginners 
 This project uses:  
 - 🛡️ Basic [OAuth2](https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/?h=jwt) authentication provided by FastApi security nested package.
 - 🔋[PostgreSQL](https://hub.docker.com/_/postgres) as its main database, [Redis](https://hub.docker.com/_/redis) for caching, and [flyway](https://hub.docker.com/r/flyway/flyway) for database migration.
-- 🔋 Unit and integration tests.
+- 🧪  Unit and integration tests.
 
 ### Project architecture
 
