@@ -33,3 +33,9 @@ FROM api AS unit_tests
 WORKDIR /app/src
 
 CMD ["python", "-m", "unittest", "discover", "-s", "./unit_tests", "-p", "test_*.py", "-v"]
+
+FROM api AS linter
+
+WORKDIR /app/src
+
+CMD ["ruff", "check", "--fix", "."]

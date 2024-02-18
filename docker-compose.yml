@@ -61,6 +61,14 @@ services:
       target: unit_tests
     env_file:
       - .env
+  mercury_linter:
+    image: cwcloud-linter:latest
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      target: linter
+    env_file:
+      - .env
 
 volumes:
   mercurydb:

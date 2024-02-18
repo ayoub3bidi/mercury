@@ -1,5 +1,6 @@
 stages:
   - test
+  - lint
 
 unit_test:
   stage: test
@@ -16,6 +17,17 @@ integration_test:
   stage: test
   script:
     - setsid ./ci/integration-test.sh
+  only:
+    refs:
+      - /^(main|develop.*)$/
+      - merge_requests
+  tags:
+    - imagesbuilder
+
+lint:
+  stage: lint
+  script:
+    - setsid ./ci/lint.sh
   only:
     refs:
       - /^(main|develop.*)$/
