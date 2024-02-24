@@ -1,4 +1,4 @@
-name: CI
+name: Unit and Integration Tests
 
 on:
   push:
@@ -19,11 +19,11 @@ jobs:
 
       - name: Create environment file
         run: |
-          echo "POSTGRES_HOST=${{ secrets.POSTGRES_HOST }}" > .env
-          echo "POSTGRES_PORT=${{ secrets.POSTGRES_PORT }}" >> .env
-          echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env
-          echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
-          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
+          echo "POSTGRES_HOST=${{ env.POSTGRES_HOST }}" > .env
+          echo "POSTGRES_PORT=${{ env.POSTGRES_PORT }}" >> .env
+          echo "POSTGRES_DB=${{ env.POSTGRES_DB }}" >> .env
+          echo "POSTGRES_USER=${{ env.POSTGRES_USER }}" >> .env
+          echo "POSTGRES_PASSWORD=${{ env.POSTGRES_PASSWORD }}" >> .env
 
       - name: Run integration tests
         run: |
@@ -37,11 +37,11 @@ jobs:
 
       - name: Create environment file
         run: |
-          echo "POSTGRES_HOST=${{ secrets.POSTGRES_HOST }}" > .env
-          echo "POSTGRES_PORT=${{ secrets.POSTGRES_PORT }}" >> .env
-          echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env
-          echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
-          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
+          echo "POSTGRES_HOST=${{ env.POSTGRES_HOST }}" > .env
+          echo "POSTGRES_PORT=${{ env.POSTGRES_PORT }}" >> .env
+          echo "POSTGRES_DB=${{ env.POSTGRES_DB }}" >> .env
+          echo "POSTGRES_USER=${{ env.POSTGRES_USER }}" >> .env
+          echo "POSTGRES_PASSWORD=${{ env.POSTGRES_PASSWORD }}" >> .env
 
       - name: Run unit tests
         run: |
