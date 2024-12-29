@@ -1,9 +1,20 @@
 stages:
-  - lint
-  - test
+  - cleanup
+  - check
+  - scan
+
+cleanup_docker:
+  stage: cleanup
+  script:
+    - ./ci/cleanup-docker.sh
+  tags:
+    - web
+  only:
+    - /^(main|develop).*$/
+    - merge_requests
 
 lint:
-  stage: lint
+  stage: check
   script:
     - setsid ./ci/lint.sh
   rules:
@@ -17,7 +28,7 @@ lint:
     - imagesbuilder
 
 unit_test:
-  stage: test
+  stage: check
   script:
     - setsid ./ci/unit-test.sh
   rules:
@@ -27,9 +38,19 @@ unit_test:
     - imagesbuilder
 
 integration_test:
-  stage: test
+  stage: check
   script:
     - setsid ./ci/integration-test.sh
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH =~ /^(main|develop.*)$/
+  tags:
+    - imagesbuilder
+
+security:
+  stage: scan
+  script:
+    - ./ci/security.sh
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH =~ /^(main|develop.*)$/

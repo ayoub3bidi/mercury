@@ -1,5 +1,6 @@
 version: '3.3'
 services:
+
   mercury_api:
     restart: always
     image: mercury_api:latest
@@ -17,12 +18,14 @@ services:
       - mercury_cache
       - mercury_db
       - mercury_migrate
+
   mercury_cache:
     image: redis:6.2.6
     restart: always
     container_name: mercury_cache
     networks:
       - mercury_api
+
   mercury_migrate:
     image: flyway/flyway:7.15.0
     container_name: mercury_migrate
@@ -35,6 +38,7 @@ services:
       - mercury_db
     networks:
       - mercury_api
+
   mercury_db:
     image: postgres:13
     container_name: mercury_db
@@ -47,6 +51,7 @@ services:
       - .env
     networks:
       - mercury_api
+
   mercury_integration_tests:
     build:
       context: .
@@ -54,6 +59,7 @@ services:
       target: integration_tests
     env_file:
       - .env
+
   mercury_unit_tests:
     build:
       context: .
@@ -61,12 +67,24 @@ services:
       target: unit_tests
     env_file:
       - .env
+
   mercury_linter:
     image: cwcloud-linter:latest
     build:
       context: .
       dockerfile: ./Dockerfile
       target: linter
+    env_file:
+      - .env
+
+  mercury_security:
+    image: cwcloud-security:latest
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      target: code_scanner
+    volumes:
+      - .:/app
     env_file:
       - .env
 

@@ -22,20 +22,32 @@ EXPOSE 8000
 
 CMD ["python", "src/app.py"]
 
+# Integration tests
 FROM api AS integration_tests
 
 WORKDIR /app/src/integration_tests
 
 CMD ["pytest"]
 
+# Unit tests
 FROM api AS unit_tests
 
 WORKDIR /app/src
 
 CMD ["python", "-m", "unittest", "discover", "-s", "./unit_tests", "-p", "test_*.py", "-v"]
 
+# Lint
 FROM api AS linter
 
 WORKDIR /app/src
 
 CMD ["ruff", "check", "--fix", "."]
+
+# Scan
+FROM api AS code_scanner
+
+WORKDIR /app/src
+
+RUN pip install bandit
+
+CMD ["bandit", "-r", ".", "-f", "screen"]
