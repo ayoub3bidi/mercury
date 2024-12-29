@@ -1,15 +1,28 @@
 stages:
-  - test
   - lint
+  - test
+
+lint:
+  stage: lint
+  script:
+    - setsid ./ci/lint.sh
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH =~ /^(main|develop.*)$/
+  artifacts:
+    reports:
+      codequality: lint-report.json
+    expire_in: 1 week
+  tags:
+    - imagesbuilder
 
 unit_test:
   stage: test
   script:
     - setsid ./ci/unit-test.sh
-  only:
-    refs:
-      - /^(main|develop.*)$/
-      - merge_requests
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH =~ /^(main|develop.*)$/
   tags:
     - imagesbuilder
 
@@ -17,20 +30,8 @@ integration_test:
   stage: test
   script:
     - setsid ./ci/integration-test.sh
-  only:
-    refs:
-      - /^(main|develop.*)$/
-      - merge_requests
-  tags:
-    - imagesbuilder
-
-lint:
-  stage: lint
-  script:
-    - setsid ./ci/lint.sh
-  only:
-    refs:
-      - /^(main|develop.*)$/
-      - merge_requests
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH =~ /^(main|develop.*)$/
   tags:
     - imagesbuilder
