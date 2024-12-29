@@ -1,12 +1,17 @@
 ARG PYTHON_VERSION=3.9.16
+ARG FLYWAYDB_VERSION=9.20-alpine
 
+# Base image
 FROM python:${PYTHON_VERSION} as api
 
-ENV WERKZEUNG_RUN_MAIN=true \
-    PYTHONUNBUFFERED=1 \
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
     PYTHONIOENCODING=UTF-8 \
     LISTEN_ADDR="0.0.0.0" \
-    LISTEN_PORT=8000
+    LISTEN_PORT=5000 \
+    UVICORN_WORKERS=10 \
+    UVICORN_TIMEOUT_KEEP_ALIVE=65 \
+    UVICORN_TIMEOUT_GRACEFUL_SHUTDOWN=30
 
 WORKDIR /app
 
@@ -14,11 +19,13 @@ COPY ./requirements.txt /app/requirements.txt
 
 RUN find . -name '*.pyc' -type f -delete && \
     pip install --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir -r requirements.txt && \
+    rm -rf *.tgz && \
+    apt clean -y
 
 COPY . /app/
 
-EXPOSE 8000
+EXPOSE 5000
 
 CMD ["python", "src/app.py"]
 
