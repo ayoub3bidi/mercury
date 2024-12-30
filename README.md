@@ -191,6 +191,7 @@ docker compose up --build --abort-on-container-exit mercury_linter
 For our project, we're using `bandit`, a tool designed to find common security issues in Python code. Here's how to run it locally:
 
 ```shell
+docker compose up --build --abort-on-container-exit mercury_security
 ```
 
 -------
