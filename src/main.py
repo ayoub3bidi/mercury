@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import redis
 from constants.environment_variables import APP_DESCRIPTION, APP_TITLE, APP_VERSION, APP_ENV
 from database.postgres_db import dbEngine, Base
 import database.redis_db as redis

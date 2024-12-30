@@ -6,7 +6,6 @@
 
 <p align="center">
     <img src="https://img.shields.io/badge/Made%20with-Python-1f425f.svg">
-    <img src="https://github.com/ayoub3bidi/mercury/workflows/CI/badge.svg">
     <img src="https://img.shields.io/github/release/ayoub3bidi/mercury">
 </p>
 
@@ -18,6 +17,8 @@
 * [Test the database](#test-the-database)
 * [How to add new SQL migrations](#how-to-add-new-sql-migrations)
 * [Integration and Unit Testing](#integration-and-unit-testing)
+* [Linter](#linter)
+* [Security Scan](#security-scan)
 
 ## Introduction
 
@@ -27,6 +28,7 @@ This project uses:
 - 🛡️ Basic [OAuth2](https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/?h=jwt) authentication provided by FastApi security nested package.
 - 🔋[PostgreSQL](https://hub.docker.com/_/postgres) as its main database, [Redis](https://hub.docker.com/_/redis) for caching, and [flyway](https://hub.docker.com/r/flyway/flyway) for database migration.
 - 🧪  Unit and integration tests.
+- 🔒️ Security scanner (Bandit).
 
 ### Project architecture
 
@@ -80,13 +82,16 @@ ADMIN_USERNAME="admin"
 ADMIN_EMAIL="admin"
 ADMIN_PASSWORD="admin"
 ## Postgres Configuration
-POSTGRES_HOST_AUTH_METHOD=changeit
-POSTGRES_PASSWORD=mercury
 POSTGRES_HOST=mercury_db
+POSTGRES_PASSWORD=mercury
 POSTGRES_PORT=5432
 POSTGRES_USER=mercury
 POSTGRES_DB=mercury
 POSTGRES_HOST_AUTH_METHOD=trust
+POSTGRES_SIZE_POOL=30
+POSTGRES_MAX_OVERFLOW=10
+POSTGRES_POOL_TIMEOUT=30
+POSTGRES_POOL_RECYCLE=1800
 ## Redis Configuration
 REDIS_HOST=mercury_cache
 REDIS_PORT=6379
@@ -99,7 +104,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES=30
 ### Run the containers
 
 ```shell
-docker-compose up --build --force-recreate
+docker compose up --build --force-recreate
 ```
 
 ## Test the API
@@ -160,14 +165,14 @@ One of important things that should be in every project is tests to keeps thing 
 Here's how to run the integration test locally:  
 
 ```shell
-docker-compose up --build --abort-on-container-exit mercury_integration_tests
+docker compose up --build --abort-on-container-exit mercury_integration_tests
 ```
 
 ### Unit tests
 Here's how to run the integration test locally:  
 
 ```shell
-docker-compose up --build --abort-on-container-exit mercury_unit_tests
+docker compose up --build --abort-on-container-exit mercury_unit_tests
 ```
 
 ## Linter
@@ -178,7 +183,14 @@ For the linter we're working with [ruff](https://astral.sh/ruff), a very fast li
 Here's how to run the linter test locally:
 
 ```shell
-docker-compose up --build --abort-on-container-exit mercury_linter
+docker compose up --build --abort-on-container-exit mercury_linter
+```
+
+## Security Scan
+
+For our project, we're using `bandit`, a tool designed to find common security issues in Python code. Here's how to run it locally:
+
+```shell
 ```
 
 -------

@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-docker-compose up --build --abort-on-container-exit mercury_unit_tests
+docker compose up --build --abort-on-container-exit mercury_unit_tests

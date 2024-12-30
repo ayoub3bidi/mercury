@@ -1,36 +1,58 @@
 stages:
-  - test
-  - lint
+  - cleanup
+  - check
+  - scan
+
+cleanup_docker:
+  stage: cleanup
+  script:
+    - ./ci/cleanup-docker.sh
+  tags:
+    - web
+  only:
+    - /^(main|develop).*$/
+    - merge_requests
+
+lint:
+  stage: check
+  script:
+    - setsid ./ci/lint.sh
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH =~ /^(main|develop.*)$/
+  artifacts:
+    reports:
+      codequality: lint-report.json
+    expire_in: 1 week
+  tags:
+    - imagesbuilder
 
 unit_test:
-  stage: test
+  stage: check
   script:
     - setsid ./ci/unit-test.sh
-  only:
-    refs:
-      - /^(main|develop.*)$/
-      - merge_requests
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH =~ /^(main|develop.*)$/
   tags:
     - imagesbuilder
 
 integration_test:
-  stage: test
+  stage: check
   script:
     - setsid ./ci/integration-test.sh
-  only:
-    refs:
-      - /^(main|develop.*)$/
-      - merge_requests
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH =~ /^(main|develop.*)$/
   tags:
     - imagesbuilder
 
-lint:
-  stage: lint
+security:
+  stage: scan
   script:
-    - setsid ./ci/lint.sh
-  only:
-    refs:
-      - /^(main|develop.*)$/
-      - merge_requests
+    - ./ci/security.sh
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH =~ /^(main|develop.*)$/
   tags:
     - imagesbuilder
