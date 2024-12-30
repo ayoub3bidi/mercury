@@ -8,7 +8,7 @@ FROM python:${PYTHON_VERSION} as api
 ENV PYTHONUNBUFFERED=1 \
     PYTHONIOENCODING=UTF-8 \
     LISTEN_ADDR="0.0.0.0" \
-    LISTEN_PORT=5000 \
+    LISTEN_PORT=8000 \
     UVICORN_WORKERS=10 \
     UVICORN_TIMEOUT_KEEP_ALIVE=65 \
     UVICORN_TIMEOUT_GRACEFUL_SHUTDOWN=30
@@ -25,7 +25,7 @@ RUN find . -name '*.pyc' -type f -delete && \
 
 COPY . /app/
 
-EXPOSE 5000
+EXPOSE 8000
 
 CMD ["python", "src/app.py"]
 
