@@ -1,5 +1,5 @@
 fastapi==0.95.1
-requests==2.30.0
+requests==2.32.2
 uvicorn==0.22.0
 redis
 SQLAlchemy==1.4.46
