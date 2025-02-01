@@ -4,5 +4,6 @@ CREATE TABLE IF NOT EXISTS public.user (
     email VARCHAR(200),
     password VARCHAR(200),
     is_admin BOOLEAN,
-    disabled BOOLEAN
+    disabled BOOLEAN,
+    oidc_configs JSONB DEFAULT '[]'::jsonb;
 );

@@ -4,7 +4,7 @@ from constants.environment_variables import APP_DESCRIPTION, APP_TITLE, APP_VERS
 from database.postgres_db import dbEngine, Base
 import database.redis_db as redis
 from restful_ressources import import_resources
-from utils.security import create_admin_user
+# from utils.security import create_admin_user
 
 Base.metadata.create_all(bind=dbEngine)
 redis.init()
@@ -25,6 +25,6 @@ if APP_ENV == 'local':
         allow_headers=["*"],
     )
 
-create_admin_user()
+# create_admin_user()
 
 import_resources(app)

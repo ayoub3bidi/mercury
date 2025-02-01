@@ -1,7 +1,6 @@
-import uuid
 from database.postgres_db import Base
-from sqlalchemy import Column, Integer, String, Boolean, Numeric
-from sqlalchemy.sql import func
+from sqlalchemy import Column, String, Boolean
+from sqlalchemy.dialects.postgresql import JSONB
 from fastapi_utils.guid_type import GUID, GUID_SERVER_DEFAULT_POSTGRESQL
 
 class User(Base):
@@ -12,3 +11,4 @@ class User(Base):
     password = Column(String, nullable=False)
     is_admin = Column(Boolean, nullable=True, default=False)
     disabled = Column(Boolean, nullable=True, default=False)
+    oidc_configs = Column(JSONB, default=lambda: [], nullable=False)
