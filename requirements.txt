@@ -12,3 +12,4 @@ python-multipart==0.0.18
 pytest
 ruff
 httpx
+google-auth

@@ -25,8 +25,8 @@
 Mercury is a simple and reliable boilerplate that anyone can use from beginners to experts (no deep bullsh*t).   
 
 This project uses:  
-- 🛡️ Basic [OAuth2](https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/?h=jwt) authentication provided by FastApi security nested package.
-- 🔋[PostgreSQL](https://hub.docker.com/_/postgres) as its main database, [Redis](https://hub.docker.com/_/redis) for caching, and [flyway](https://hub.docker.com/r/flyway/flyway) for database migration.
+- 🛡️ Basic [OAuth2](https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/?h=jwt) authentication, utilizing the FastAPI security module. It also supports user authentication via Google integration.
+- 🛢[PostgreSQL](https://hub.docker.com/_/postgres) as its main database, [Redis](https://hub.docker.com/_/redis) for caching, and [flyway](https://hub.docker.com/r/flyway/flyway) for database migration.
 - 🧪  Unit and integration tests.
 - 🔒️ Security scanner (Bandit).
 
@@ -75,6 +75,7 @@ This will create a `.env` file in your project locally.
 APP_TITLE="Mercury API Docs"
 APP_DESCRIPTION="This is the Swagger documentation of the Mercury API"
 APP_VERSION=1.0
+API_URL="http://localhost:8000"
 API_VERSION="v1"
 APP_ENV=local
 ## Admin Configuration
@@ -99,6 +100,12 @@ REDIS_PORT=6379
 JWT_SECRET_KEY="mysecretkey"
 JWT_ALGORITHM="HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES=30
+## OIDC Configuration
+OIDC_GOOGLE_CLIENT_ID="changeme"
+OIDC_GOOGLE_CLIENT_SECRET="changeme"
+GOOGLE_AUTH_URL="https://accounts.google.com/o/oauth2/auth"
+GOOGLE_TOKEN_URL="https://accounts.google.com/o/oauth2/token"
+GOOGLE_USER_INFO_URL="https://www.googleapis.com/oauth2/v1/userinfo"
 ```
 
 ### Run the containers
