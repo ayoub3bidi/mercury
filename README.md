@@ -1,7 +1,7 @@
 # Mercury
 <p align="center">
-    <img src="./src/assets/mercury-logo.png"/> <br/>
-    A simple FastApi template.
+    <img src="./src/assets/mercury.png"/> <br/>
+    Start your Backend project faster than ever
 </p>
 
 <p align="center">
