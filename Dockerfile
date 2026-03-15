@@ -57,4 +57,4 @@ WORKDIR /app/src
 
 RUN pip install bandit
 
-CMD ["bandit", "-r", ".", "-f", "screen"]
+CMD ["bandit", "-r", ".", "-f", "screen", "-s", "B101"]

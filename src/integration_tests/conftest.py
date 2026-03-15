@@ -7,7 +7,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 # Set required env vars before importing main (which validates them)
-os.environ.setdefault("LISTEN_ADDR", "0.0.0.0")
+os.environ.setdefault("LISTEN_ADDR", "0.0.0.0")  # nosec B104 - test env only, not production bind
 os.environ.setdefault("LISTEN_PORT", "8000")
 os.environ.setdefault("APP_VERSION", "1.0")
 os.environ.setdefault("APP_TITLE", "Mercury")
