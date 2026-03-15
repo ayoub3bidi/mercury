@@ -2,23 +2,45 @@ import os
 
 import pytest
 
+from database.postgres_db import SessionLocal
 from init_test import client
+from models.User import User
+from utils.security import get_password_hash
 
 v = os.getenv("API_VERSION", "v1")
 
-# Seeded admin from V1.3__seed_admin_user.sql (see README)
+# Test admin credentials (same as README / V1.3 seed); used only in tests
 ADMIN_EMAIL = "test@admin.com"
-ADMIN_PASSWORD = "Cloud.456"
+ADMIN_PASSWORD = "Cloud.456"  # nosec B105
 
 # ID of user created in test_add_user; used by test_get_user_by_id and test_delete_user
 _created_user_id = None
 
 
+def _ensure_admin_user_exists():
+    """Create the test admin user if missing (self-contained tests; does not rely on migration order)."""
+    db = SessionLocal()
+    try:
+        if db.query(User).filter(User.email == ADMIN_EMAIL).first() is not None:
+            return
+        user = User(
+            username="admin",
+            email=ADMIN_EMAIL,
+            password=get_password_hash(ADMIN_PASSWORD),
+            is_admin=True,
+        )
+        db.add(user)
+        db.commit()
+    finally:
+        db.close()
+
+
 @pytest.fixture(scope="module")
 def admin_headers():
-    """Obtain a JWT for the seeded admin user and return headers for admin routes."""
+    """Obtain a JWT for the admin user and return headers for admin routes."""
     if client is None:
         pytest.skip("Client not initialized")
+    _ensure_admin_user_exists()
     response = client.post(
         f"/{v}/token",
         data={"username": ADMIN_EMAIL, "password": ADMIN_PASSWORD},
