@@ -9,8 +9,9 @@ from models.User import User
 from controllers.oidc.google import get_user_infos_from_google_token_url, get_user_infos_from_google_token, create_user
 from constants.environment_variables import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
+    JWT_ALGORITHM,
+    JWT_SECRET_KEY,
     OIDC_GOOGLE_CLIENT_ID,
-    OIDC_GOOGLE_CLIENT_SECRET,
     OIDC_GOOGLE_REDIRECT_URI,
     GOOGLE_AUTH_URL,
 )
@@ -67,4 +68,4 @@ async def auth_google(code: str = None, credential: str = None, db: Session = De
 
 @router.get("/google/token")
 async def get_google_token(token: str = Depends(oauth2_scheme)):
-    return jwt.decode(token, OIDC_GOOGLE_CLIENT_SECRET, algorithms=["HS256"])
+    return jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])

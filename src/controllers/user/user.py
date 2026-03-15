@@ -1,5 +1,5 @@
 from datetime import timedelta
-import os
+
 from fastapi import HTTPException, status
 from constants.environment_variables import ACCESS_TOKEN_EXPIRE_MINUTES
 from models.User import User

@@ -1,5 +1,8 @@
 from typing import Optional
+from uuid import UUID
+
 from pydantic import BaseModel
+
 
 class UserLoginSchema(BaseModel):
     email: str
@@ -10,8 +13,9 @@ class UserLoginSchema(BaseModel):
         allow_population_by_field_name = True
         arbitrary_types_allowed = True
 
+
 class UserSchema(BaseModel):
-    id: int
+    id: UUID
     username: Optional[str] = None
     email: str
     disabled: Optional[bool] = None

@@ -83,14 +83,20 @@ def create_user(user_infos, db):
         }
 
     new_user = User(
-        email=user_infos['email'],
-        oidc_configs=[{
-            "provider": "google",
-            "id": user_infos['id'],
-            "email": user_infos['email']
-        }]
+        username=user_infos.get("email", "").split("@")[0] or "",
+        email=user_infos["email"],
+        password=None,
+        oidc_configs=[
+            {
+                "provider": "google",
+                "id": user_infos["id"],
+                "email": user_infos["email"],
+            }
+        ],
     )
-    new_user.save(db)
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
     return {
         "status": True,
         "user": new_user

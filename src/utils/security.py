@@ -1,25 +1,40 @@
 import re
-from passlib.context import CryptContext
-import os
 from datetime import datetime, timedelta
 from typing import Union
-from jose import jwt
+
 from fastapi import HTTPException, status
-from constants.environment_variables import ACCESS_TOKEN_EXPIRE_MINUTES, ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_USERNAME, JWT_ALGORITHM, JWT_SECRET_KEY
-from models.User import User
-from database.postgres_db import SessionLocal
+from jose import jwt
+from passlib.context import CryptContext
+
+from constants.environment_variables import (
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    ADMIN_EMAIL,
+    ADMIN_PASSWORD,
+    ADMIN_USERNAME,
+    JWT_ALGORITHM,
+    JWT_SECRET_KEY,
+)
 from constants.regex import email_regex, password_regex
+from models.User import User
 
 crypting_algorithm = "sha256_crypt" if JWT_ALGORITHM == "HS256" else "bcrypt"
 
 pwd_context = CryptContext(schemes=[crypting_algorithm], deprecated="auto")
-db = SessionLocal()
 
-def create_admin_user():
+
+def create_admin_user(db):
+    """Create the default admin user if it does not exist. Call with a session from get_db or SessionLocal."""
+    if not ADMIN_EMAIL or not ADMIN_PASSWORD or not ADMIN_USERNAME:
+        return
     user = db.query(User).filter(User.email == ADMIN_EMAIL).first()
     if not user:
         password = get_password_hash(ADMIN_PASSWORD)
-        new_user = User(username=ADMIN_USERNAME, email=ADMIN_EMAIL, password=password, is_admin=True)
+        new_user = User(
+            username=ADMIN_USERNAME,
+            email=ADMIN_EMAIL,
+            password=password,
+            is_admin=True,
+        )
         db.add(new_user)
         db.commit()
         db.refresh(new_user)  

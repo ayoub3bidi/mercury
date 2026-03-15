@@ -1,17 +1,16 @@
 from datetime import timedelta
 from typing import Annotated
-from constants.environment_variables import ACCESS_TOKEN_EXPIRE_MINUTES, JWT_ALGORITHM, JWT_SECRET_KEY, v
-from models.User import User
-from sqlalchemy.orm import Session
-from fastapi import Depends, HTTPException, status
-from database.postgres_db import get_db
-import os
-from jose import JWTError, jwt
-from fastapi import Depends, HTTPException, status, APIRouter
+
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from jose import JWTError, jwt
+from sqlalchemy.orm import Session
+
+from constants.environment_variables import ACCESS_TOKEN_EXPIRE_MINUTES, JWT_ALGORITHM, JWT_SECRET_KEY, v
+from database.postgres_db import get_db
+from models.User import User
 
 from schemas.Token import TokenData, Token
-from schemas.User import UserRegisterSchema
 from utils.security import create_access_token, verify_password
 
 
@@ -26,15 +25,11 @@ def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depen
     else:
         user = db.query(User).filter(User.username == form_data.username).first()
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invalid credentials")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+    if user.password is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     if not verify_password(form_data.password, user.password):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Incorrect password")
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     access_token_expires = timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
     access_token = create_access_token(
         data={"sub": user.email}, expires_delta=access_token_expires
@@ -60,12 +55,13 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
         raise credentials_exception
     return user
 
-async def get_current_active_user(current_user: UserRegisterSchema = Depends(get_current_user)):
+async def get_current_active_user(current_user: User = Depends(get_current_user)):
     if current_user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
 
-async def get_current_admin_user(current_user: UserRegisterSchema = Depends(get_current_user)):
+
+async def get_current_admin_user(current_user: User = Depends(get_current_user)):
     if current_user.is_admin is False:
         raise HTTPException(status_code=400, detail="User is not admin")
     return current_user

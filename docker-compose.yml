@@ -59,6 +59,12 @@ services:
       target: integration_tests
     env_file:
       - .env
+    depends_on:
+      - mercury_db
+      - mercury_cache
+      - mercury_migrate
+    networks:
+      - mercury_api
 
   mercury_unit_tests:
     build:
@@ -69,7 +75,6 @@ services:
       - .env
 
   mercury_linter:
-    image: cwcloud-linter:latest
     build:
       context: .
       dockerfile: ./Dockerfile
@@ -78,7 +83,6 @@ services:
       - .env
 
   mercury_security:
-    image: cwcloud-security:latest
     build:
       context: .
       dockerfile: ./Dockerfile

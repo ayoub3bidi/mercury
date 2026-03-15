@@ -1,33 +1,59 @@
 from typing import Annotated
+
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
-from fastapi import Depends, status, APIRouter
+
 from controllers.admin.user import add_user, delete_user, update_user
 from database.postgres_db import get_db
 from middleware.auth_guard import get_current_admin_user
 from models.User import User
-from schemas.User import UserSchema, UserAdminRegisterSchema, UserAdminUpdateSchema
-from utils.filter import remove_password_from_users, remove_password_from_user
+from schemas.User import UserAdminRegisterSchema, UserAdminUpdateSchema
+from utils.filter import remove_password_from_user, remove_password_from_users
 
 router = APIRouter()
 
+
 @router.get("/all", status_code=status.HTTP_200_OK)
-def get_all_users(current_user: Annotated[UserSchema, Depends(get_current_admin_user)], db: Session = Depends(get_db)):
+def get_all_users(
+    current_user: Annotated[User, Depends(get_current_admin_user)],
+    db: Session = Depends(get_db),
+):
     users = db.query(User).all()
     return remove_password_from_users(users)
 
 @router.get("/{user_id}", status_code=status.HTTP_200_OK)
-def get_user_by_id(current_user: Annotated[UserSchema, Depends(get_current_admin_user)], user_id: str, db: Session = Depends(get_db)):
+def get_user_by_id(
+    current_user: Annotated[User, Depends(get_current_admin_user)],
+    user_id: str,
+    db: Session = Depends(get_db),
+):
     user = db.query(User).filter(User.id == user_id).first()
     return remove_password_from_user(user)
 
+
 @router.post("/register", status_code=status.HTTP_201_CREATED)
-def register_user(current_user: Annotated[UserSchema, Depends(get_current_admin_user)], payload: UserAdminRegisterSchema, db: Session = Depends(get_db)):
+def register_user(
+    current_user: Annotated[User, Depends(get_current_admin_user)],
+    payload: UserAdminRegisterSchema,
+    db: Session = Depends(get_db),
+):
     return add_user(payload, db)
 
+
 @router.patch("/{user_id}", status_code=status.HTTP_200_OK)
-def update_user_by_id(current_user: Annotated[UserSchema, Depends(get_current_admin_user)], user_id: str, payload: UserAdminUpdateSchema, db: Session = Depends(get_db)):
+def update_user_by_id(
+    current_user: Annotated[User, Depends(get_current_admin_user)],
+    user_id: str,
+    payload: UserAdminUpdateSchema,
+    db: Session = Depends(get_db),
+):
     return update_user(user_id, payload, db)
 
+
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_user_by_id(current_user: Annotated[UserSchema, Depends(get_current_admin_user)], user_id: str, db: Session = Depends(get_db)):
+def delete_user_by_id(
+    current_user: Annotated[User, Depends(get_current_admin_user)],
+    user_id: str,
+    db: Session = Depends(get_db),
+):
     return delete_user(user_id, db)

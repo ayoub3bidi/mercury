@@ -8,7 +8,6 @@ def add_user(payload, db):
     user = db.query(User).filter(User.email == payload.email).first()
     if user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
-    password_entered = payload.password
     payload.password = get_password_hash(payload.password)
     new_user = User(**payload.dict())
     db.add(new_user)
@@ -17,7 +16,6 @@ def add_user(payload, db):
     return {
             "id": new_user.id,
             "email": new_user.email,
-            "password": password_entered
         }
     
 def update_user(user_id, payload, db):
@@ -48,7 +46,6 @@ def update_user(user_id, payload, db):
     if payload.is_admin is not None:
         user.update({"is_admin": payload.is_admin})
     if payload.disabled is not None:
-        User.disabled = user.disabled
         user.update({"disabled": payload.disabled})
         
     db.commit()
