@@ -1,10 +1,9 @@
-import httpx
+from fastapi.testclient import TestClient
 
 client = None
 
 
 def init(app):
-    """Create an HTTP client that talks to the ASGI app (works with httpx 0.24+ including 0.28+)."""
+    """Create a sync test client for the FastAPI app. Requires httpx<0.28 for Starlette TestClient compatibility."""
     global client
-    transport = httpx.ASGITransport(app=app)
-    client = httpx.Client(transport=transport, base_url="http://testserver")
+    client = TestClient(app)

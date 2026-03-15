@@ -11,5 +11,5 @@ passlib[bcrypt]
 python-multipart==0.0.18
 pytest
 ruff
-httpx
+httpx>=0.24,<0.28
 google-auth
