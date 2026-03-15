@@ -11,7 +11,7 @@ on:
       - develop
 
 jobs:
-  integration_test:
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -20,49 +20,25 @@ jobs:
       - name: Create environment file
         run: |
           cat << 'ENVFILE' > .env
-          POSTGRES_HOST=mercury_db
-          POSTGRES_PORT=5432
-          POSTGRES_DB=mercury
-          POSTGRES_USER=mercury
-          POSTGRES_PASSWORD=mercury
-          API_VERSION=v1
-          REDIS_HOST=mercury_cache
           LISTEN_ADDR=0.0.0.0
           LISTEN_PORT=8000
           APP_VERSION=1.0
           APP_TITLE=Mercury
           APP_DESCRIPTION=Mercury API
+          API_VERSION=v1
+          POSTGRES_HOST=mercury_db
+          POSTGRES_PORT=5432
+          POSTGRES_DB=mercury
+          POSTGRES_USER=mercury
+          POSTGRES_PASSWORD=mercury
+          REDIS_HOST=mercury_cache
           JWT_SECRET_KEY=test-secret-key
           JWT_ALGORITHM=HS256
           ACCESS_TOKEN_EXPIRE_MINUTES=30
           ENVFILE
 
-      - name: Run integration tests
-        run: |
-          setsid ./ci/integration-test.sh
-
-  unit_test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Create environment file
-        run: |
-          echo "LISTEN_ADDR=0.0.0.0" > .env
-          echo "LISTEN_PORT=8000" >> .env
-          echo "APP_VERSION=1.0" >> .env
-          echo "APP_TITLE=Mercury" >> .env
-          echo "APP_DESCRIPTION=Mercury API" >> .env
-          echo "API_VERSION=v1" >> .env
-          echo "POSTGRES_HOST=${POSTGRES_HOST:-localhost}" >> .env
-          echo "POSTGRES_PORT=${POSTGRES_PORT:-5432}" >> .env
-          echo "POSTGRES_DB=${POSTGRES_DB:-mercury}" >> .env
-          echo "POSTGRES_USER=${POSTGRES_USER:-mercury}" >> .env
-          echo "POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-mercury}" >> .env
-          echo "JWT_SECRET_KEY=test-secret-key" >> .env
-          echo "JWT_ALGORITHM=HS256" >> .env
-
       - name: Run unit tests
-        run: |
-          setsid ./ci/unit-test.sh
+        run: setsid ./ci/unit-test.sh
+
+      - name: Run integration tests
+        run: setsid ./ci/integration-test.sh
