@@ -78,10 +78,6 @@ APP_VERSION=1.0
 API_URL="http://localhost:8000"
 API_VERSION="v1"
 APP_ENV=local
-## Admin Configuration
-ADMIN_USERNAME="admin"
-ADMIN_EMAIL="admin"
-ADMIN_PASSWORD="admin"
 ## Postgres Configuration
 POSTGRES_HOST=mercury_db
 POSTGRES_PASSWORD=mercury
@@ -113,6 +109,16 @@ GOOGLE_USER_INFO_URL="https://www.googleapis.com/oauth2/v1/userinfo"
 ```shell
 docker compose up --build --force-recreate
 ```
+
+## Default admin account
+
+Migrations seed one admin user so you can try the API and admin routes right away:
+
+| Email           | Password  |
+|-----------------|-----------|
+| test@admin.com  | Cloud.456 |
+
+Get a JWT by calling `POST /v1/token` with form body `username=test@admin.com` and `password=Cloud.456`, then use the returned `access_token` as `Authorization: Bearer <token>` for admin endpoints. Change or remove this user in production.
 
 ## Test the API
 

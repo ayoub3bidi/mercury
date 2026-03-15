@@ -8,9 +8,6 @@ from passlib.context import CryptContext
 
 from constants.environment_variables import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
-    ADMIN_EMAIL,
-    ADMIN_PASSWORD,
-    ADMIN_USERNAME,
     JWT_ALGORITHM,
     JWT_SECRET_KEY,
 )
@@ -21,23 +18,6 @@ crypting_algorithm = "sha256_crypt" if JWT_ALGORITHM == "HS256" else "bcrypt"
 
 pwd_context = CryptContext(schemes=[crypting_algorithm], deprecated="auto")
 
-
-def create_admin_user(db):
-    """Create the default admin user if it does not exist. Call with a session from get_db or SessionLocal."""
-    if not ADMIN_EMAIL or not ADMIN_PASSWORD or not ADMIN_USERNAME:
-        return
-    user = db.query(User).filter(User.email == ADMIN_EMAIL).first()
-    if not user:
-        password = get_password_hash(ADMIN_PASSWORD)
-        new_user = User(
-            username=ADMIN_USERNAME,
-            email=ADMIN_EMAIL,
-            password=password,
-            is_admin=True,
-        )
-        db.add(new_user)
-        db.commit()
-        db.refresh(new_user)  
 
 def validate_email(email):
     if re.search(email_regex, email):
