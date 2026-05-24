@@ -25,10 +25,10 @@
 Mercury is a simple and reliable boilerplate that anyone can use from beginners to experts (no deep bullsh*t).   
 
 This project uses:  
-- 🛡️ Basic [OAuth2](https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/?h=jwt) authentication, utilizing the FastAPI security module. It also supports user authentication via Google integration.
-- 🛢[PostgreSQL](https://hub.docker.com/_/postgres) as its main database, [Redis](https://hub.docker.com/_/redis) for caching, and [flyway](https://hub.docker.com/r/flyway/flyway) for database migration.
-- 🧪  Unit and integration tests.
-- 🔒️ Security scanner (Bandit).
+- Basic [OAuth2](https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/?h=jwt) authentication, utilizing the FastAPI security module. It also supports user authentication via Google integration.
+- [PostgreSQL](https://hub.docker.com/_/postgres) as its main database, [Redis](https://hub.docker.com/_/redis) for caching, and [flyway](https://hub.docker.com/r/flyway/flyway) for database migration.
+- Unit and integration tests.
+- Security scanner (Bandit).
 
 ### Project architecture
 
@@ -211,4 +211,4 @@ docker compose up --build --abort-on-container-exit mercury_security
 
 ## Contributions
 
-All contributions are welcome! Give a ⭐️ if this project helped you!
+All contributions are welcome! Give a star if this project helped you!

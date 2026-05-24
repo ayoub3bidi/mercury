@@ -1,1 +1,11 @@
 .git
+.env
+.venv
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+.ruff_cache
+*.egg-info
+swagger.png
+README.md

@@ -1,0 +1,51 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "timezone": "Africa/Tunis",
+  "schedule": ["before 6am on Monday"],
+  "labels": ["dependencies"],
+  "dependencyDashboard": true,
+  "packageRules": [
+    {
+      "description": "Auto-merge non-breaking Python dep updates",
+      "matchManagers": ["pip_requirements"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "Python deps (minor/patch)",
+      "automerge": true,
+      "automergeType": "pr",
+      "platformAutomerge": true
+    },
+    {
+      "description": "Major Python updates need manual review",
+      "matchManagers": ["pip_requirements"],
+      "matchUpdateTypes": ["major"],
+      "groupName": "Python deps (major)",
+      "automerge": false
+    },
+    {
+      "description": "Core framework deps always need manual review",
+      "matchPackageNames": ["fastapi", "sqlalchemy", "pydantic", "pydantic-settings", "alembic"],
+      "automerge": false,
+      "labels": ["dependencies", "core"]
+    },
+    {
+      "description": "Docker base image bumps - manual review",
+      "matchManagers": ["dockerfile", "docker-compose"],
+      "groupName": "Docker base images",
+      "automerge": false,
+      "labels": ["dependencies", "docker"]
+    },
+    {
+      "description": "GitHub Actions - auto-merge patch, manual for major",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true,
+      "groupName": "GitHub Actions"
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["security", "dependencies"]
+  },
+  "osvVulnerabilityAlerts": true
+}

@@ -1,4 +1,5 @@
 """Auth routes: OAuth2 token endpoint."""
+
 from typing import Annotated
 
 from fastapi import APIRouter, Depends

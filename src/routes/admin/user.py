@@ -21,6 +21,7 @@ def get_all_users(
     users = db.query(User).all()
     return remove_password_from_users(users)
 
+
 @router.get("/{user_id}", status_code=status.HTTP_200_OK)
 def get_user_by_id(
     current_user: Annotated[User, Depends(get_current_admin_user)],

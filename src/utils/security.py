@@ -24,16 +24,20 @@ def validate_email(email):
         return True
     return False
 
+
 def validate_password(password):
     if re.search(password_regex, password):
         return True
     return False
 
+
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
+
 def get_password_hash(password):
     return pwd_context.hash(password)
+
 
 def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None):
     to_encode = data.copy()
@@ -44,6 +48,7 @@ def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
     return encoded_jwt
+
 
 def authenticate_user(payload, db):
     user = db.query(User).filter(User.email == payload.email).first()

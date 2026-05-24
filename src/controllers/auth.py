@@ -1,4 +1,5 @@
 """Auth controller: token (OAuth2 password) login."""
+
 from datetime import timedelta
 
 from fastapi import HTTPException, status

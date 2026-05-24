@@ -1,4 +1,5 @@
 """Auth dependencies: JWT validation and get_current_user / get_current_active_user / get_current_admin_user."""
+
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, status

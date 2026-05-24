@@ -9,34 +9,39 @@ def add_user(payload, db):
     if user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
     payload.password = get_password_hash(payload.password)
-    new_user = User(**payload.dict())
+    new_user = User(**payload.model_dump())
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
     return {
-            "id": new_user.id,
-            "email": new_user.email,
-        }
-    
+        "id": new_user.id,
+        "email": new_user.email,
+    }
+
+
 def update_user(user_id, payload, db):
     user = db.query(User).filter(User.id == user_id)
-    
+
     existing_user = user.first()
     if not existing_user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-    
-    updated_user = User(**payload.dict())
+
+    updated_user = User(**payload.model_dump())
 
     if is_not_empty(updated_user.email) and updated_user.email != existing_user.email:
         user_exists = db.query(User).filter(User.email == updated_user.email).first()
         if user_exists:
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"The email {updated_user.email} already exists")
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT, detail=f"The email {updated_user.email} already exists"
+            )
 
     if is_not_empty(updated_user.username) and updated_user.username != existing_user.username:
         user_exists = db.query(User).filter(User.username == updated_user.username).first()
         if user_exists:
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"The username {updated_user.username} already exists")
-    
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT, detail=f"The username {updated_user.username} already exists"
+            )
+
     if payload.username:
         user.update({"username": payload.username})
     if payload.email:
@@ -47,14 +52,13 @@ def update_user(user_id, payload, db):
         user.update({"is_admin": payload.is_admin})
     if payload.disabled is not None:
         user.update({"disabled": payload.disabled})
-        
+
     db.commit()
     db.refresh(existing_user)
 
-    return {
-        "message": "user been updated successfully"
-    }
-    
+    return {"message": "user been updated successfully"}
+
+
 def delete_user(user_id, db):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:

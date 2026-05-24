@@ -90,7 +90,10 @@ def test_get_user_by_id(admin_headers):
 
     response = client.get(f"/{v}/admin/user/{_created_user_id}", headers=admin_headers)
     assert response.status_code == 200
-    assert response.json().get("id") == _created_user_id or response.json().get("email") == "test_user_integration@gmail.com"
+    assert (
+        response.json().get("id") == _created_user_id
+        or response.json().get("email") == "test_user_integration@gmail.com"
+    )
 
 
 def test_delete_user(admin_headers):

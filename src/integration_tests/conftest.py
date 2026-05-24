@@ -1,4 +1,5 @@
 """Pytest fixtures for integration tests. Ensures the FastAPI app and TestClient are initialized."""
+
 import os
 import sys
 from pathlib import Path
