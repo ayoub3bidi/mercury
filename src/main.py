@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from constants.settings import settings
 import database.redis_db as redis
@@ -25,6 +26,8 @@ app = FastAPI(
     version=str(settings.APP_VERSION),
     description=settings.APP_DESCRIPTION,
 )
+
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.allowed_hosts_list)
 
 if not _is_production:
     app.add_middleware(
