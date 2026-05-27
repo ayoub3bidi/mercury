@@ -5,7 +5,7 @@ from fastapi.security import OAuth2PasswordBearer
 from utils.security import create_access_token
 from database.postgres_db import get_db
 from jose import jwt
-from models.User import User
+from repositories.user import UserRepository
 from controllers.oidc.google import get_user_infos_from_google_token_url, get_user_infos_from_google_token, create_user
 from constants.settings import settings
 
@@ -47,7 +47,7 @@ async def auth_google(code: str = None, credential: str = None, db: Session = De
     else:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Neither code nor credential provided.")
 
-    user = db.query(User).filter(User.oidc_configs.contains([{"provider": "google", "id": user_infos["id"]}])).first()
+    user = UserRepository.get_by_google_oidc_id(db, user_infos["id"])
 
     if not user:
         check = create_user(user_infos, db)

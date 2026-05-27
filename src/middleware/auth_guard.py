@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from constants.settings import settings
 from database.postgres_db import get_db
 from models.User import User
+from repositories.user import UserRepository
 from schemas.Token import TokenData
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"/{settings.v}/token")
@@ -33,7 +34,7 @@ async def get_current_user(
         token_data = TokenData(email=email)
     except JWTError:
         raise credentials_exception
-    user = db.query(User).filter(User.email == token_data.email).first()
+    user = UserRepository.get_by_email(db, token_data.email)
     if user is None:
         raise credentials_exception
     return user

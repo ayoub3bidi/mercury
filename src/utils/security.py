@@ -12,6 +12,7 @@ from pwdlib.hashers.bcrypt import BcryptHasher
 from constants.settings import settings
 from constants.regex import email_regex, password_regex
 from models.User import User
+from repositories.user import UserRepository
 
 password_hash = PasswordHash((Argon2Hasher(), BcryptHasher()))
 
@@ -82,14 +83,14 @@ def _authenticate_user_record(user: User | None, password: str, db) -> User | No
 
 
 def authenticate_by_email(email: str, password: str, db) -> User | None:
-    user = db.query(User).filter(User.email == email).first()
+    user = UserRepository.get_by_email(db, email)
     return _authenticate_user_record(user, password, db)
 
 
 def authenticate_by_username_or_email(username_or_email: str, password: str, db) -> User | None:
     if "@" in username_or_email:
         return authenticate_by_email(username_or_email, password, db)
-    user = db.query(User).filter(User.username == username_or_email).first()
+    user = UserRepository.get_by_username(db, username_or_email)
     return _authenticate_user_record(user, password, db)
 
 
