@@ -6,231 +6,264 @@ Mercury is a small FastAPI backend boilerplate centered on JWT auth, PostgreSQL 
 
 This file is a working analysis for future agents so they can navigate the repository quickly and avoid common mistakes.
 
+**Current release line:** latest tag is `v0.3.1`; `main` is one commit ahead and ready for `v0.3.2`.
+
 ## Stack Summary
 
-- API framework: FastAPI
-- App server: Uvicorn
-- Database: PostgreSQL via SQLAlchemy 1.4
-- Cache/bootstrap dependency: Redis
-- Auth: JWT + OAuth2 password flow, plus Google OIDC
-- Migrations: Flyway SQL files
-- Tests: `unittest` for a trivial unit test, `pytest` for integration tests
-- Tooling: Docker Compose, Ruff, Bandit, GitHub Actions
+| Layer | Choice |
+|-------|--------|
+| API | FastAPI `0.128.0` (`fastapi[standard]`) |
+| Server | Uvicorn (via `src/app.py`) |
+| ORM | SQLAlchemy **2.0** (`DeclarativeBase`, `sessionmaker`) |
+| Validation | Pydantic **v2** (`ConfigDict`, `model_dump`) |
+| Database | PostgreSQL 16 (Docker), driver `psycopg2-binary` |
+| Cache | Redis 7 (initialized at startup; not used in route logic yet) |
+| Auth | JWT (`python-jose`) + OAuth2 password flow + Google OIDC |
+| Passwords | Passlib (`sha256_crypt` when `JWT_ALGORITHM=HS256`, else `bcrypt`) |
+| Migrations | Flyway 10 (flat SQL files under `src/migrations/`) |
+| Tests | `unittest` (unit), `pytest` + `TestClient` (integration) |
+| Tooling | Docker Compose, Ruff, Bandit, Renovate, GitHub Actions |
 
 ## Repository Shape
 
 Top-level areas:
 
-- `src/main.py`: Uvicorn entrypoint
-- `src/app.py`: FastAPI app construction, DB metadata creation, Redis init, router registration
-- `src/restful_ressources.py`: central router mounting
-- `src/routes/`: HTTP route definitions
-- `src/controllers/`: request logic and DB mutation/query logic
-- `src/models/`: SQLAlchemy model definitions
-- `src/schemas/`: Pydantic request/response schemas
-- `src/database/`: PostgreSQL engine/session and Redis bootstrap
-- `src/middleware/auth_guard.py`: JWT decoding and auth dependencies
-- `src/utils/`: password hashing, JWT creation, OIDC helpers, response filtering, env parsing
-- `src/migrations/`: Flyway SQL migrations
-- `src/integration_tests/`: API-level tests using `TestClient`
-- `src/unit_tests/`: very small direct-function test coverage
-- `ci/` and `.github/workflows/`: local and CI automation wrappers
+| Path | Role |
+|------|------|
+| `src/app.py` | **Uvicorn entrypoint** (`python src/app.py` in Docker); loads `main:app` |
+| `src/main.py` | **FastAPI application** — `app` object, CORS, `create_all`, Redis init, routers |
+| `src/restful_ressources.py` | Central router mounting under `/{API_VERSION}` |
+| `src/routes/` | HTTP route definitions (thin; delegate to controllers) |
+| `src/controllers/` | Request logic and DB mutation/query logic |
+| `src/models/` | SQLAlchemy models (`User` only) |
+| `src/schemas/` | Pydantic request/response schemas |
+| `src/database/` | PostgreSQL engine/session (`postgres_db.py`), Redis bootstrap (`redis_db.py`) |
+| `src/middleware/auth_guard.py` | JWT decoding and auth dependencies |
+| `src/utils/` | Password hashing, JWT, OIDC helpers, response filtering, env parsing |
+| `src/migrations/` | Flyway SQL: `V1__`, `V2__`, `V3__` |
+| `src/integration_tests/` | API-level tests |
+| `src/unit_tests/` | Minimal direct-function coverage |
+| `ci/` | Shell wrappers for Docker-based lint/test/security |
+| `.github/workflows/` | CI: test, lint, scan, build, release-on-tag |
+
+Do not confuse `app.py` and `main.py`: Docker and local runs start **`src/app.py`**; the ASGI app lives in **`src/main.py`**.
 
 ## Runtime Flow
 
-1. `src/main.py` starts Uvicorn with host/port/worker values from environment variables.
-2. Uvicorn imports `main:app`, which comes from `src/app.py`.
-3. `src/app.py` does three things at import time:
-   - creates SQLAlchemy tables with `Base.metadata.create_all(bind=dbEngine)`
-   - initializes the Redis client
-   - builds the FastAPI app and mounts routers
-4. Routes delegate into controllers.
-5. Controllers use `Session` instances from `database.postgres_db.get_db`.
-6. Protected routes use JWT decoding in `middleware/auth_guard.py`.
+1. `src/app.py` starts Uvicorn with `main:app`, host/port/workers from environment.
+2. Importing `main` triggers side effects in `src/main.py`:
+   - `Base.metadata.create_all(bind=dbEngine)` — creates tables if missing
+   - `redis.init()` — global Redis client
+   - FastAPI app construction and router registration
+3. `constants/environment_variables.py` validates required env vars **at import time** (raises `RuntimeError` if missing).
+4. Routes delegate to controllers; controllers use `get_db()` sessions.
+5. Protected routes use JWT dependencies in `middleware/auth_guard.py`.
 
-Important implication: importing the app is not cheap or side-effect free. It expects environment variables to exist and, in normal operation, assumes PostgreSQL and Redis are reachable.
+**Implication:** importing the app is not side-effect free. PostgreSQL and Redis must be reachable for a normal boot. Prefer Docker Compose for full-stack validation.
 
 ## API Surface
 
-Mounted under `/{API_VERSION}`:
+Mounted under `/{API_VERSION}` (default `v1`):
 
-- `GET /health`: basic health response
-- `POST /token`: OAuth2 password grant endpoint returning `access_token`
-- `POST /user/register`: create normal user
-- `POST /user/login`: email/password login returning user payload + nested token object
-- `GET /user`: current authenticated user
-- `PATCH /user`: update current authenticated user
-- `GET /oidc/google/login`: returns Google authorization URL
-- `GET /oidc/google`: handles Google `code` or `credential`, creates/links user, returns JWT
-- `GET /oidc/google/token`: decodes a provided JWT
-- `GET /admin/user/all`: list all users
-- `GET /admin/user/{user_id}`: fetch one user
-- `POST /admin/user/register`: create user as admin
-- `PATCH /admin/user/{user_id}`: update user as admin
-- `DELETE /admin/user/{user_id}`: delete user
+| Method | Path | Auth | Notes |
+|--------|------|------|-------|
+| `GET` | `/health` | — | `{"alive": true, "status": "ok"}` |
+| `POST` | `/token` | — | OAuth2 password grant; `username` = email **or** username |
+| `POST` | `/user/register` | — | Email/password registration |
+| `POST` | `/user/login` | — | JSON login; returns user + nested `token` object |
+| `GET` | `/user` | Bearer | Current user |
+| `PATCH` | `/user` | Bearer | Update current user |
+| `GET` | `/oidc/google/login` | — | Google authorization URL |
+| `GET` | `/oidc/google` | — | OAuth `code` or `credential` → JWT |
+| `GET` | `/oidc/google/token` | — | Decode provided JWT |
+| `GET` | `/admin/user/all` | Admin | List users (passwords stripped) |
+| `GET` | `/admin/user/{user_id}` | Admin | Single user |
+| `POST` | `/admin/user/register` | Admin | Create user |
+| `PATCH` | `/admin/user/{user_id}` | Admin | Update user |
+| `DELETE` | `/admin/user/{user_id}` | Admin | Delete user (204) |
+
+Swagger UI is at `/` (`docs_url="/"`).
 
 ## Data Model
 
-There is one application model: `User`.
+Single application model: `User` (`public.user` table).
 
-Fields:
+| Field | Type | Notes |
+|-------|------|-------|
+| `id` | UUID | PK, `uuid_generate_v4()` |
+| `username` | string | optional |
+| `email` | string | unique |
+| `password` | string | nullable (OIDC-only users) |
+| `is_admin` | bool | |
+| `disabled` | bool | |
+| `oidc_configs` | JSONB | provider mappings array |
 
-- `id`: UUID primary key
-- `username`: optional string
-- `email`: unique string
-- `password`: nullable string
-- `is_admin`: boolean
-- `disabled`: boolean
-- `oidc_configs`: JSONB array storing provider mappings
+Google OIDC users are created with `password=None`.
 
-Google OIDC users can be created with `password=None`.
+## Flyway Migrations
+
+Flat layout in `src/migrations/` (not versioned subfolders):
+
+| File | Purpose |
+|------|---------|
+| `V1__init_db.sql` | `uuid-ossp` extension |
+| `V2__create_user_table.sql` | `user` table |
+| `V3__seed_admin_user.sql` | Dev admin `test@admin.com` / `Cloud.456` (sha256_crypt hash) |
+
+`flyway.conf` sets `validateOnMigrate=true`, `outOfOrder=false`. Compose service `mercury_migrate` runs before `mercury_api`.
+
+**Migration rename (since v0.3.1):** old paths like `V1/V1.1__*` were flattened to `V1__`, `V2__`, `V3__`. Existing DBs that already ran old Flyway versions need a manual Flyway/history plan before upgrading — do not assume a clean rename on production data.
 
 ## Auth Model
 
-There are two login paths:
+Two login paths:
 
-- `/token`: OAuth2-compatible login using `username` form field, but it accepts either username or email
-- `/user/login`: JSON login using email only
+- **`POST /token`**: OAuth2 form; `username` accepts email or username; returns `{ access_token, token_type }`; failures → **401**
+- **`POST /user/login`**: JSON email + password; returns `{ id, email, token: { ... } }`; failures → **404** (via `authenticate_user`)
 
-JWTs store the user email in `sub`. Current-user resolution always re-queries by email.
+JWT payload uses `sub` = user **email**. User resolution always re-queries by email.
 
-Role enforcement:
+Dependencies:
 
-- `get_current_active_user` blocks disabled users
-- `get_current_admin_user` checks `is_admin`, but does not also enforce `disabled`
+- `get_current_user` — valid JWT + user exists
+- `get_current_active_user` — not `disabled` (400 if inactive)
+- `get_current_admin_user` — `is_admin` (400 if not admin); **does not** check `disabled`
+
+Default seeded admin (README): `test@admin.com` / `Cloud.456`.
 
 ## Environment Model
 
-The settings module validates several required variables at import time. At minimum, local execution needs values for:
+Required at import (`validate_required_env()`):
 
-- `LISTEN_ADDR`
-- `LISTEN_PORT`
-- `APP_VERSION`
-- `APP_TITLE`
-- `APP_DESCRIPTION`
-- `API_VERSION`
-- `POSTGRES_DB`
-- `POSTGRES_USER`
-- `POSTGRES_PASSWORD`
-- `POSTGRES_PORT`
-- `POSTGRES_HOST`
-- `JWT_SECRET_KEY`
-- `JWT_ALGORITHM`
+`LISTEN_ADDR`, `LISTEN_PORT`, `APP_VERSION`, `APP_TITLE`, `APP_DESCRIPTION`, `API_VERSION`, `POSTGRES_*` (db, user, password, port, host), `JWT_SECRET_KEY`, `JWT_ALGORITHM`.
 
-Additional variables used by optional paths:
+Commonly set but not validated as required:
 
-- `REDIS_HOST`, `REDIS_PORT`
-- `ACCESS_TOKEN_EXPIRE_MINUTES`
-- `API_URL`
-- `HTTP_REQUEST_TIMEOUT`
-- Google OIDC client and endpoint values
+`APP_ENV`, `API_URL`, `REDIS_HOST`, `REDIS_PORT`, `ACCESS_TOKEN_EXPIRE_MINUTES`, `HTTP_REQUEST_TIMEOUT`, Google OIDC vars.
 
-Use `.env.dist` as the baseline. Normal project usage assumes `.env` plus `docker compose`.
+`OIDC_GOOGLE_REDIRECT_URI` is derived: `{API_URL}/{API_VERSION}/oidc/google`.
+
+Baseline: copy `.env.dist` → `.env`. Docker Compose loads `.env` for all services.
+
+Pool tuning (optional): `POSTGRES_SIZE_POOL`, `POSTGRES_MAX_OVERFLOW`, `POSTGRES_POOL_TIMEOUT`, `POSTGRES_POOL_RECYCLE` (defaults in `postgres_db.py`).
+
+Uvicorn tuning (optional): `UVICORN_WORKERS`, `UVICORN_TIMEOUT_KEEP_ALIVE`, `UVICORN_TIMEOUT_GRACEFUL_SHUTDOWN`.
 
 ## Docker and CI
 
-Primary services in `docker-compose.yml`:
+Compose services:
 
-- `mercury_api`
-- `mercury_db`
-- `mercury_cache`
-- `mercury_migrate`
-- `mercury_integration_tests`
-- `mercury_unit_tests`
-- `mercury_linter`
-- `mercury_security`
+| Service | Role |
+|---------|------|
+| `mercury_api` | API (non-root `app` user, healthcheck on `/v1/health`) |
+| `mercury_db` | PostgreSQL 16 |
+| `mercury_cache` | Redis 7 |
+| `mercury_migrate` | Flyway (`FLYWAYDB_VERSION` default `10-alpine`) |
+| `mercury_integration_tests` | `pytest -v` |
+| `mercury_unit_tests` | `unittest discover` |
+| `mercury_linter` | `ruff check` |
+| `mercury_security` | `bandit` |
 
-Normal commands:
+Commands:
 
-- Run app: `docker compose up --build --force-recreate`
-- Unit tests: `./ci/unit-test.sh`
-- Integration tests: `./ci/integration-test.sh`
-- Lint: `./ci/lint.sh`
-- Security scan: `./ci/security.sh`
+```bash
+docker compose up --build --force-recreate          # full stack
+./ci/unit-test.sh
+./ci/integration-test.sh
+./ci/lint.sh
+./ci/security.sh
+```
 
-GitHub Actions cover:
+GitHub Actions (`main` / `develop` / PRs):
 
-- unit + integration tests
-- lint
-- security scan
-- Docker image build on `main`
-- release creation on pushed `v*` tags
+- **test.yml** — unit + integration via `ci/*.sh`
+- **lint.yml** — Ruff
+- **scan.yml** — Bandit
+- **build.yml** — Docker image on `main`
+- **release.yml** — GitHub Release on push of tag matching `v*`
+
+Renovate (`renovate.json`) groups pip minor/patch with automerge; majors and core frameworks (FastAPI, SQLAlchemy, Pydantic) need manual review.
 
 ## Test Reality
 
-Current test coverage is shallow.
+Coverage is shallow but integration tests improved since v0.3.1:
 
-- Unit coverage is a single health test that imports `routes.health` directly.
-- Integration coverage exercises health plus part of the admin user flow.
-- Integration tests are not hermetic; they depend on app import, environment bootstrap, and database access.
+- **Unit:** single health test (`routes.health`); runs from `src/` in Docker.
+- **Integration:** health + admin CRUD flow; `admin_headers` fixture logs in via `/token`; `_ensure_admin_user_exists()` makes tests resilient if seed migration order differs.
+- Tests import the real app (`main:app`) — need DB, Redis, migrations, and full `.env`.
 
-Practical note: local non-Docker test execution is brittle. From the repository root, the unit test needs `PYTHONPATH=src`, and the local machine must already have the Python dependencies installed.
+Local non-Docker runs need `PYTHONPATH=src` and installed deps from `requirements.txt`.
+
+## Changes Since v0.3.1 (v0.3.2 scope)
+
+Single commit on `main` since `v0.3.1`: `834f9ae` — *refactor user management and authentication logic*.
+
+Notable deltas:
+
+- **SQLAlchemy 1.4 → 2.0** — `DeclarativeBase`, modern engine/session setup, `pool_pre_ping`
+- **Pydantic v2** — schemas use `ConfigDict` / `model_dump`
+- **Dependency bumps** — FastAPI 0.128, pinned requirements refresh
+- **Flyway layout** — flat `V1__` / `V2__` / `V3__` migration files
+- **Docker** — multi-stage Dockerfile, non-root API user, service healthchecks, `mercury_migrate` `service_completed_successfully` gate
+- **Compose** — Postgres 16, Redis 7, Flyway 10
+- **Renovate** — new `renovate.json`
+- **Docs** — README default admin table; this `Agents.md`
 
 ## Architectural Strengths
 
-- The project is small and easy to trace end-to-end.
-- Route/controller separation is consistent.
-- SQL migrations are explicit and readable.
-- Docker Compose provides a straightforward full-stack dev loop.
-- Auth, admin routes, and OIDC are already scaffolded for extension.
+- Small, traceable codebase with consistent route → controller layout.
+- Explicit SQL migrations; readable seed for local dev.
+- Full Docker dev loop (migrate → api → tests).
+- Auth, admin, and OIDC scaffolding ready to extend.
+- CI covers test, lint, security, build, and tag releases.
+- SQLAlchemy 2 + Pydantic v2 align with current ecosystem defaults.
 
 ## Main Risks and Sharp Edges
 
-1. Startup side effects are heavy.
-   `src/app.py` creates DB tables and initializes Redis during import. This makes testing and partial module reuse harder.
-
-2. Two schema-management approaches coexist.
-   SQLAlchemy `create_all()` runs at startup even though Flyway migrations are the intended schema source. Those can drift.
-
-3. Auth behavior is inconsistent.
-   `/token` accepts username or email, while `/user/login` accepts email only and returns a different token shape.
-
-4. Error handling is uneven.
-   Some auth failures return `401`, others return `404`; that leaks distinction between missing user and bad password.
-
-5. Some route paths can raise server errors instead of clean API errors.
-   Admin get-by-id sanitizes the returned object without guarding for `None`, so a missing user can become a `500`.
-
-6. Password hashing is coupled to JWT algorithm selection.
-   `utils/security.py` chooses `sha256_crypt` when `JWT_ALGORITHM == "HS256"` and `bcrypt` otherwise. Those concerns should be independent.
-
-7. Environment validation is partial.
-   Some values are required early, but others used at runtime are optional in validation, so misconfiguration can slip through.
-
-8. Redis is initialized but not meaningfully integrated in request logic.
-   At the moment it is mostly bootstrap overhead.
-
-9. Test execution assumptions are under-documented.
-   Local direct execution currently fails without path setup and installed dependencies.
+1. **Startup side effects** — `create_all()` + Redis init on `main` import complicates testing and duplicates Flyway.
+2. **Dual schema management** — Flyway is source of truth for production; `create_all()` can drift or mask migration gaps.
+3. **Inconsistent auth responses** — `/token` (401) vs `/user/login` (404); different response shapes.
+4. **Admin GET by id** — `remove_password_from_user(user)` when `user is None` → **500** instead of 404.
+5. **Password scheme tied to JWT algorithm** — `sha256_crypt` iff `HS256`; should be independent config.
+6. **Admin auth** — `get_current_admin_user` does not enforce `disabled`.
+7. **Redis** — connected but unused in business logic (bootstrap only).
+8. **Response filters** — `utils/filter.py` mutates ORM `__dict__` in place; risky if objects are reused.
+9. **Flyway migration rename** — upgrading from pre-v0.3.2 Flyway history may need `flyway repair` / baseline strategy.
+10. **Seeded admin** — fine for dev; must be removed/changed in production.
 
 ## Recommendations For Future Agents
 
-- Prefer Docker Compose for any validation that imports `src/app.py`.
-- Assume Flyway migrations, not SQLAlchemy metadata creation, are the source of truth for production schema changes.
-- Preserve the route/controller/module layout; the codebase is organized around that shape.
-- When adding auth-sensitive features, keep JWT payload semantics aligned with `sub=email` unless you refactor all dependent code.
-- Add tests whenever changing auth, admin routes, or OIDC, because the current coverage will not catch much.
-- Be careful with response filtering helpers in `utils/filter.py`; they mutate ORM `__dict__` views directly.
-- Do not assume the repo is in a clean git state before working; inspect changes first.
-
-## Local Validation Performed For This Analysis
-
-What succeeded:
-
-- source inventory and architecture review
-- static syntax compilation via `python3 -m compileall src`
-- Ruff check via `python3 -m ruff check src`
-
-What did not fully run in the current shell:
-
-- `python3 -m unittest discover -s src/unit_tests -p 'test_*.py' -v` failed from repo root because the test assumes `PYTHONPATH=src`
-- `PYTHONPATH=src python3 -m unittest ...` then failed because local dependencies like `fastapi` are not installed in this shell
-- `pytest` is not installed in this shell, so integration tests were not run outside Docker
+- Prefer **Docker Compose** for anything that imports `src/main.py`.
+- Treat **Flyway SQL** as the schema source of truth; consider removing `create_all()` in a follow-up.
+- Preserve route/controller/module layout.
+- Keep JWT `sub=email` unless refactoring all auth paths together.
+- Add tests for auth failures, OIDC edge cases, and admin 404 paths — current coverage will not catch regressions.
+- When adding migrations, use next `V{n}__description.sql` in `src/migrations/`.
+- Inspect git state before large edits; `main` may be ahead of latest tag.
 
 ## Suggested Improvement Order
 
-1. Remove `create_all()` from startup and rely on Flyway only.
-2. Normalize auth responses and status codes across `/token` and `/user/login`.
-3. Fix `None` handling and response shaping for admin/user fetch endpoints.
-4. Decouple password hashing configuration from JWT algorithm choice.
-5. Strengthen tests so they can run locally and cover negative auth/admin cases.
+1. Remove `create_all()` from startup; rely on Flyway only.
+2. Normalize auth status codes and response shapes across `/token` and `/user/login`.
+3. Guard `GET /admin/user/{id}` for missing users (404 before filter).
+4. Decouple password hashing from `JWT_ALGORITHM`.
+5. Enforce `disabled` on admin dependencies (or document intentional bypass).
+6. Use Redis for sessions/rate-limit/cache when extending the boilerplate.
+7. Expand integration tests (user login, register, negative auth, OIDC mocks).
+
+## Local Validation (analysis run)
+
+Succeeded:
+
+- Source inventory and architecture review
+- `python3 -m compileall -q src`
+- `python3 -m ruff check src` — all checks passed
+
+Not run in this shell (use Docker instead):
+
+- Unit/integration tests (need Compose stack and `.env`)
+- Bandit security scan
+
+## Release Tagging
+
+Tags in this repo use a **`v` prefix** (`v0.3.1`, not `0.3.1`). Pushing `v0.3.2` triggers `.github/workflows/release.yml` to create a GitHub Release with generated notes.
