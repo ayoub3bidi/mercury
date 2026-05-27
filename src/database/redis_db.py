@@ -1,8 +1,8 @@
 import redis
 
-from constants.environment_variables import REDIS_HOST, REDIS_PORT
+from constants.settings import settings
 
-redis_connect = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
+redis_connect = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
 
 
 def init():

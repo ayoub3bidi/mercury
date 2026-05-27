@@ -7,12 +7,12 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
-from constants.environment_variables import JWT_ALGORITHM, JWT_SECRET_KEY, v
+from constants.settings import settings
 from database.postgres_db import get_db
 from models.User import User
 from schemas.Token import TokenData
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"/{v}/token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"/{settings.v}/token")
 
 
 async def get_current_user(
@@ -26,7 +26,7 @@ async def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        payload = jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.JWT_ALGORITHM])
         email: str = payload.get("sub")
         if email is None:
             raise credentials_exception

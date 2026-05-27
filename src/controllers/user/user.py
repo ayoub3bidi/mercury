@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 from fastapi import HTTPException, status
-from constants.environment_variables import ACCESS_TOKEN_EXPIRE_MINUTES
+from constants.settings import settings
 from models.User import User
 from utils.security import authenticate_user, create_access_token, get_password_hash, validate_email, validate_password
 from utils.variables import is_not_empty
@@ -25,7 +25,7 @@ def register(payload, db):
 
 def login(payload, db):
     user = authenticate_user(payload, db)
-    access_token_expires = timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(data={"sub": user.email}, expires_delta=access_token_expires)
     return {"id": user.id, "email": user.email, "token": {"access_token": access_token, "token_type": "bearer"}}
 

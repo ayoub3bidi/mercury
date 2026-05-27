@@ -6,15 +6,11 @@ from fastapi import HTTPException, status
 from jose import jwt
 from passlib.context import CryptContext
 
-from constants.environment_variables import (
-    ACCESS_TOKEN_EXPIRE_MINUTES,
-    JWT_ALGORITHM,
-    JWT_SECRET_KEY,
-)
+from constants.settings import settings
 from constants.regex import email_regex, password_regex
 from models.User import User
 
-crypting_algorithm = "sha256_crypt" if JWT_ALGORITHM == "HS256" else "bcrypt"
+crypting_algorithm = "sha256_crypt" if settings.JWT_ALGORITHM == "HS256" else "bcrypt"
 
 pwd_context = CryptContext(schemes=[crypting_algorithm], deprecated="auto")
 
@@ -44,9 +40,9 @@ def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, settings.jwt_secret_key, algorithm=settings.JWT_ALGORITHM)
     return encoded_jwt
 
 
