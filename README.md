@@ -207,6 +207,27 @@ For our project, we're using `bandit`, a tool designed to find common security i
 docker compose up --build --abort-on-container-exit mercury_security
 ```
 
+## Pre-commit
+
+Install hooks locally to catch lint issues before CI:
+
+```shell
+pip install pre-commit
+pre-commit install --install-hooks
+pre-commit run --all-files
+```
+
+## How to add a new endpoint
+
+1. **Flyway migration** — add `src/migrations/V{n}__description.sql` (next version number).
+2. **Model** — add or update a SQLAlchemy model in `src/models/`.
+3. **Schema** — add Pydantic request/response schemas in `src/schemas/`.
+4. **Controller** — implement logic in `src/controllers/`.
+5. **Route** — wire the endpoint in `src/routes/` and register it in `src/restful_ressources.py`.
+6. **Tests** — add coverage under `src/integration_tests/` (and `src/unit_tests/` when appropriate).
+
+Run `./ci/integration-test.sh` after changes.
+
 -------
 
 ## Contributions
