@@ -1,17 +1,23 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from constants.settings import settings
 import database.redis_db as redis
-from database.postgres_db import Base, dbEngine
 from restful_ressources import import_resources
 
-Base.metadata.create_all(bind=dbEngine)
-redis.init()
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    redis.init()
+    yield
+
 
 _is_production = settings.APP_ENV == "production"
 
 app = FastAPI(
+    lifespan=lifespan,
     docs_url=None if _is_production else "/",
     redoc_url=None if _is_production else "/redoc",
     openapi_url=None if _is_production else "/openapi.json",
