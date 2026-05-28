@@ -14,6 +14,9 @@ crypting_algorithm = "sha256_crypt" if settings.JWT_ALGORITHM == "HS256" else "b
 
 pwd_context = CryptContext(schemes=[crypting_algorithm], deprecated="auto")
 
+# Pre-hashed password used when the user does not exist (timing-attack mitigation).
+DUMMY_HASH = pwd_context.hash("__mercury_timing_dummy__")
+
 
 def validate_email(email):
     if re.search(email_regex, email):
@@ -46,10 +49,33 @@ def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None
     return encoded_jwt
 
 
+def _authenticate_user_record(user: User | None, password: str) -> User | None:
+    if user is None or user.password is None:
+        verify_password(password, DUMMY_HASH)
+        return None
+    if not verify_password(password, user.password):
+        return None
+    return user
+
+
+def authenticate_by_email(email: str, password: str, db) -> User | None:
+    user = db.query(User).filter(User.email == email).first()
+    return _authenticate_user_record(user, password)
+
+
+def authenticate_by_username_or_email(username_or_email: str, password: str, db) -> User | None:
+    if "@" in username_or_email:
+        return authenticate_by_email(username_or_email, password, db)
+    user = db.query(User).filter(User.username == username_or_email).first()
+    return _authenticate_user_record(user, password)
+
+
 def authenticate_user(payload, db):
-    user = db.query(User).filter(User.email == payload.email).first()
+    user = authenticate_by_email(payload.email, payload.password, db)
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invalid credentials")
-    if not verify_password(payload.password, user.password):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Incorrect password")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     return user

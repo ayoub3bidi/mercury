@@ -7,23 +7,18 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from constants.settings import settings
-from models.User import User
-from utils.security import create_access_token, verify_password
+from utils.security import authenticate_by_username_or_email, create_access_token
 
 
 def login_for_access_token(form_data: OAuth2PasswordRequestForm, db: Session):
     """Validate username/email + password and return a JWT token."""
-    user_name_or_email = form_data.username
-    if "@" in user_name_or_email:
-        user = db.query(User).filter(User.email == form_data.username).first()
-    else:
-        user = db.query(User).filter(User.username == form_data.username).first()
+    user = authenticate_by_username_or_email(form_data.username, form_data.password, db)
     if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
-    if user.password is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
-    if not verify_password(form_data.password, user.password):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.email},
