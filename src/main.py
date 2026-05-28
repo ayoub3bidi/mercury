@@ -9,14 +9,18 @@ from restful_ressources import import_resources
 Base.metadata.create_all(bind=dbEngine)
 redis.init()
 
+_is_production = settings.APP_ENV == "production"
+
 app = FastAPI(
-    docs_url="/",
+    docs_url=None if _is_production else "/",
+    redoc_url=None if _is_production else "/redoc",
+    openapi_url=None if _is_production else "/openapi.json",
     title=settings.APP_TITLE,
     version=str(settings.APP_VERSION),
     description=settings.APP_DESCRIPTION,
 )
 
-if settings.APP_ENV == "local":
+if not _is_production:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
