@@ -7,14 +7,7 @@ from database.postgres_db import get_db
 from jose import jwt
 from models.User import User
 from controllers.oidc.google import get_user_infos_from_google_token_url, get_user_infos_from_google_token, create_user
-from constants.environment_variables import (
-    ACCESS_TOKEN_EXPIRE_MINUTES,
-    JWT_ALGORITHM,
-    JWT_SECRET_KEY,
-    OIDC_GOOGLE_CLIENT_ID,
-    OIDC_GOOGLE_REDIRECT_URI,
-    GOOGLE_AUTH_URL,
-)
+from constants.settings import settings
 
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -24,15 +17,15 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 async def login_google():
     params = {
         "response_type": "code",
-        "client_id": OIDC_GOOGLE_CLIENT_ID,
-        "redirect_uri": OIDC_GOOGLE_REDIRECT_URI,
+        "client_id": settings.OIDC_GOOGLE_CLIENT_ID,
+        "redirect_uri": settings.OIDC_GOOGLE_REDIRECT_URI,
         "scope": "openid email profile",
         "access_type": "offline",
         "prompt": "consent",
     }
 
     query_string = "&".join(f"{key}={value}" for key, value in params.items())
-    authorization_url = f"{GOOGLE_AUTH_URL}?{query_string}"
+    authorization_url = f"{settings.GOOGLE_AUTH_URL}?{query_string}"
 
     return {"url": authorization_url}
 
@@ -62,7 +55,7 @@ async def auth_google(code: str = None, credential: str = None, db: Session = De
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=check["message"])
         user = check["user"]
 
-    access_token_expires = timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(data={"sub": user.email}, expires_delta=access_token_expires)
 
     return {"token": access_token}
@@ -70,4 +63,4 @@ async def auth_google(code: str = None, credential: str = None, db: Session = De
 
 @router.get("/google/token")
 async def get_google_token(token: str = Depends(oauth2_scheme)):
-    return jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+    return jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.JWT_ALGORITHM])

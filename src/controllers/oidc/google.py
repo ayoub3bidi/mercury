@@ -3,30 +3,27 @@ from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token
 from models.User import User
 from utils.oidc import update_oidc_info
-from constants.environment_variables import (
-    OIDC_GOOGLE_CLIENT_ID,
-    OIDC_GOOGLE_CLIENT_SECRET,
-    OIDC_GOOGLE_REDIRECT_URI,
-    GOOGLE_TOKEN_URL,
-    GOOGLE_USER_INFO_URL,
-    HTTP_REQUEST_TIMEOUT,
-)
+from constants.settings import settings
 
 
 def get_user_infos_from_google_token_url(code):
     token_data = {
         "code": code,
-        "client_id": OIDC_GOOGLE_CLIENT_ID,
-        "client_secret": OIDC_GOOGLE_CLIENT_SECRET,
-        "redirect_uri": OIDC_GOOGLE_REDIRECT_URI,
+        "client_id": settings.OIDC_GOOGLE_CLIENT_ID,
+        "client_secret": settings.OIDC_GOOGLE_CLIENT_SECRET,
+        "redirect_uri": settings.OIDC_GOOGLE_REDIRECT_URI,
         "grant_type": "authorization_code",
     }
 
-    token_response = requests.post(GOOGLE_TOKEN_URL, data=token_data, timeout=HTTP_REQUEST_TIMEOUT)
+    token_response = requests.post(
+        settings.GOOGLE_TOKEN_URL, data=token_data, timeout=settings.HTTP_REQUEST_TIMEOUT
+    )
     access_token = token_response.json().get("access_token")
 
     user_infos_response = requests.get(
-        GOOGLE_USER_INFO_URL, headers={"Authorization": f"Bearer {access_token}"}, timeout=HTTP_REQUEST_TIMEOUT
+        settings.GOOGLE_USER_INFO_URL,
+        headers={"Authorization": f"Bearer {access_token}"},
+        timeout=settings.HTTP_REQUEST_TIMEOUT,
     )
     user_infos = user_infos_response.json()
 
@@ -37,7 +34,9 @@ def get_user_infos_from_google_token_url(code):
 
 
 def get_user_infos_from_google_token(id_token_str):
-    id_info = id_token.verify_oauth2_token(id_token_str, google_requests.Request(), OIDC_GOOGLE_CLIENT_ID)
+    id_info = id_token.verify_oauth2_token(
+        id_token_str, google_requests.Request(), settings.OIDC_GOOGLE_CLIENT_ID
+    )
     user_id = id_info["sub"]
     email = id_info.get("email")
 

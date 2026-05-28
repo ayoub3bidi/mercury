@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from constants.environment_variables import APP_DESCRIPTION, APP_ENV, APP_TITLE, APP_VERSION
+from constants.settings import settings
 import database.redis_db as redis
 from database.postgres_db import Base, dbEngine
 from restful_ressources import import_resources
@@ -11,12 +11,12 @@ redis.init()
 
 app = FastAPI(
     docs_url="/",
-    title=APP_TITLE,
-    version=APP_VERSION,
-    description=APP_DESCRIPTION,
+    title=settings.APP_TITLE,
+    version=str(settings.APP_VERSION),
+    description=settings.APP_DESCRIPTION,
 )
 
-if APP_ENV == "local":
+if settings.APP_ENV == "local":
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
