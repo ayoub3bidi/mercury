@@ -6,7 +6,7 @@ Mercury is a small FastAPI backend boilerplate centered on JWT auth, PostgreSQL 
 
 This file is a working analysis for future agents so they can navigate the repository quickly and avoid common mistakes.
 
-**Current release line:** latest tag is `v0.3.1`; `main` is one commit ahead and ready for `v0.3.2`.
+**Current release line:** latest tag is `v0.4.0` (2026 upgrade stack + community standards).
 
 ## Stack Summary
 

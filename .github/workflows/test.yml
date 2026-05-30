@@ -22,7 +22,7 @@ jobs:
           cat << 'ENVFILE' > .env
           LISTEN_ADDR=0.0.0.0
           LISTEN_PORT=8000
-          APP_VERSION=1.0
+          APP_VERSION=0.4.0
           APP_TITLE=Mercury
           APP_DESCRIPTION=Mercury API
           API_VERSION=v1

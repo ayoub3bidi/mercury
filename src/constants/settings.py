@@ -11,7 +11,7 @@ class Settings(BaseSettings):
 
     LISTEN_ADDR: str
     LISTEN_PORT: int = 8000
-    APP_VERSION: str = "1.0"
+    APP_VERSION: str = "0.4.0"
     APP_TITLE: str
     APP_DESCRIPTION: str
     API_VERSION: str = "v1"
