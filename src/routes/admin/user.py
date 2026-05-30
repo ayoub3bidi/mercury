@@ -7,6 +7,7 @@ from controllers.admin.user import add_user, delete_user, update_user
 from database.postgres_db import get_db
 from middleware.auth_guard import get_current_admin_user
 from models.User import User
+from repositories.user import UserRepository
 from schemas.User import UserAdminRegisterSchema, UserAdminUpdateSchema
 from utils.filter import remove_password_from_user, remove_password_from_users
 
@@ -18,7 +19,7 @@ def get_all_users(
     current_user: Annotated[User, Depends(get_current_admin_user)],
     db: Session = Depends(get_db),
 ):
-    users = db.query(User).all()
+    users = UserRepository.list_all(db)
     return remove_password_from_users(users)
 
 
@@ -28,7 +29,7 @@ def get_user_by_id(
     user_id: str,
     db: Session = Depends(get_db),
 ):
-    user = db.query(User).filter(User.id == user_id).first()
+    user = UserRepository.get_by_id(db, user_id)
     if user is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     return remove_password_from_user(user)

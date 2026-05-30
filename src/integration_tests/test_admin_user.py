@@ -5,6 +5,7 @@ import pytest
 from database.postgres_db import SessionLocal
 from init_test import client
 from models.User import User
+from repositories.user import UserRepository
 from utils.security import get_password_hash
 
 v = os.getenv("API_VERSION", "v1")
@@ -21,7 +22,7 @@ def _ensure_admin_user_exists():
     """Create the test admin user if missing (self-contained tests; does not rely on migration order)."""
     db = SessionLocal()
     try:
-        if db.query(User).filter(User.email == ADMIN_EMAIL).first() is not None:
+        if UserRepository.get_by_email(db, ADMIN_EMAIL) is not None:
             return
         user = User(
             username="admin",

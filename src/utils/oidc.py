@@ -1,9 +1,9 @@
 from sqlalchemy.orm.attributes import flag_modified
-from models.User import User
+from repositories.user import UserRepository
 
 
 def update_oidc_info(user_id: int, provider: str, id: str, email: str, db):
-    user = db.query(User).filter(User.id == user_id).first()
+    user = UserRepository.get_by_id(db, user_id)
     if not user:
         return False
 

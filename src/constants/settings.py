@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     APP_DESCRIPTION: str
     API_VERSION: str = "v1"
     APP_ENV: str = "local"
+    ALLOWED_HOSTS: str = "localhost,127.0.0.1,0.0.0.0"
     API_URL: str = "http://localhost:8000"
     HTTP_REQUEST_TIMEOUT: int = 60
 
@@ -64,6 +65,10 @@ class Settings(BaseSettings):
     @property
     def jwt_secret_key(self) -> str:
         return self.JWT_SECRET_KEY.get_secret_value()
+
+    @property
+    def allowed_hosts_list(self) -> list[str]:
+        return [host.strip() for host in self.ALLOWED_HOSTS.split(",") if host.strip()]
 
 
 settings = Settings()

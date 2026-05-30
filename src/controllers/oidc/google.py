@@ -2,6 +2,7 @@ import requests
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token
 from models.User import User
+from repositories.user import UserRepository
 from utils.oidc import update_oidc_info
 from constants.settings import settings
 
@@ -52,7 +53,7 @@ def get_user_infos_from_google_token(id_token_str):
 
 
 def create_user(user_infos, db):
-    user_exists = db.query(User).filter(User.email == user_infos["email"]).first()
+    user_exists = UserRepository.get_by_email(db, user_infos["email"])
 
     if user_exists:
         got_updated = update_oidc_info(user_exists.id, "google", user_infos["id"], user_infos["email"], db)
@@ -73,7 +74,5 @@ def create_user(user_infos, db):
             }
         ],
     )
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+    new_user = UserRepository.create(db, new_user)
     return {"status": True, "user": new_user}
