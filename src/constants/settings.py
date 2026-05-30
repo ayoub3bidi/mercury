@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     APP_DESCRIPTION: str
     API_VERSION: str = "v1"
     APP_ENV: str = "local"
-    ALLOWED_HOSTS: str = "localhost,127.0.0.1,0.0.0.0"
+    ALLOWED_HOSTS: str = "localhost,127.0.0.1,0.0.0.0,testserver"
     API_URL: str = "http://localhost:8000"
     HTTP_REQUEST_TIMEOUT: int = 60
 

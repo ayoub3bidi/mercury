@@ -12,6 +12,7 @@
 ## Table of content
 
 * [Introduction](#Introduction)
+* [Docker Hub image](#docker-hub-image)
 * [Setup](#setup)
 * [Test the API](#test-the-api)
 * [Test the database](#test-the-database)
@@ -29,6 +30,18 @@ This project uses:
 - [PostgreSQL](https://hub.docker.com/_/postgres) as its main database, [Redis](https://hub.docker.com/_/redis) for caching, and [flyway](https://hub.docker.com/r/flyway/flyway) for database migration.
 - Unit and integration tests.
 - Security scanner (Bandit).
+
+## Docker Hub image
+
+A pre-built API image is published on Docker Hub and updated on each release:
+
+- **Repository:** [ayoub3bidi/mercury](https://hub.docker.com/r/ayoub3bidi/mercury)
+
+```shell
+docker pull ayoub3bidi/mercury:latest
+```
+
+Use it alongside your own Postgres, Redis, and Flyway setup, or clone this repo and run the full stack with `docker compose` (see [Setup](#setup)).
 
 ### Project architecture
 
@@ -124,7 +137,7 @@ Get a JWT by calling `POST /v1/token` with form body `username=test@admin.com` a
 
 You can check the Swagger documentation on [localhost:8000](http://localhost:8000).
 
-![Swagger page](./swagger.png)
+![Swagger page](./src/assets/swagger.png)
 
 ```shell
 curl localhost:8000/v1/health
@@ -232,4 +245,6 @@ Run `./ci/integration-test.sh` after changes.
 
 ## Contributions
 
-All contributions are welcome! Give a star if this project helped you!
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), and [SECURITY.md](SECURITY.md).
+
+Give a star if this project helped you!

@@ -6,4 +6,4 @@ client = None
 def init(app):
     """Create a sync test client for the FastAPI app. Requires httpx<0.28 for Starlette TestClient compatibility."""
     global client
-    client = TestClient(app)
+    client = TestClient(app, base_url="http://localhost")

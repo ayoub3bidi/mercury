@@ -22,6 +22,8 @@ os.environ.setdefault("POSTGRES_HOST", "localhost")
 os.environ.setdefault("JWT_SECRET_KEY", "test-secret-key")
 os.environ.setdefault("JWT_ALGORITHM", "HS256")
 os.environ.setdefault("ACCESS_TOKEN_EXPIRE_MINUTES", "30")
+# Starlette TestClient uses Host: testserver; must be allowed by TrustedHostMiddleware.
+os.environ["ALLOWED_HOSTS"] = "localhost,127.0.0.1,0.0.0.0,testserver"
 
 import init_test
 
