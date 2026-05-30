@@ -6,12 +6,20 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from constants.settings import settings
 import database.redis_db as redis
+from database.postgres_db import SessionLocal
 from restful_ressources import import_resources
+from utils.production_checks import validate_production_settings, warn_if_seed_admin_present
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
+    validate_production_settings()
     redis.init()
+    db = SessionLocal()
+    try:
+        warn_if_seed_admin_present(db)
+    finally:
+        db.close()
     yield
 
 
