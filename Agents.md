@@ -6,7 +6,7 @@ Mercury is a small FastAPI backend boilerplate centered on JWT auth, PostgreSQL 
 
 This file is a working analysis for future agents so they can navigate the repository quickly and avoid common mistakes.
 
-**Current release line:** latest tag is `v0.4.0` (2026 upgrade stack + community standards).
+**Current release line:** latest tag is `v0.4.0` (Flyway migrations, community standards; `solar.manifest.yaml` included for sun scaffolds).
 
 ## Stack Summary
 
@@ -194,25 +194,18 @@ Coverage is shallow but integration tests improved since v0.3.1:
 
 Local non-Docker runs need `PYTHONPATH=src` and installed deps from `requirements.txt`.
 
-## Changes Since v0.3.1 (v0.3.2 scope)
+## Release History (Mercury)
 
-Single commit on `main` since `v0.3.1`: `834f9ae` — *refactor user management and authentication logic*.
+Mercury is the original FastAPI boilerplate in the Solar Stack. Mars is the Alembic variant forked from this repo.
 
-Notable deltas:
-
-- **SQLAlchemy 1.4 → 2.0** — `DeclarativeBase`, modern engine/session setup, `pool_pre_ping`
-- **Pydantic v2** — schemas use `ConfigDict` / `model_dump`
-- **Dependency bumps** — FastAPI 0.128, pinned requirements refresh
-- **Flyway layout** — flat `V1__` / `V2__` / `V3__` migration files
-- **Docker** — multi-stage Dockerfile, non-root API user, service healthchecks, `mercury_migrate` `service_completed_successfully` gate
-- **Compose** — Postgres 16, Redis 7, Flyway 10
-- **Renovate** — new `renovate.json`
-- **Docs** — README default admin table; this `Agents.md`
+- **Flyway** flat SQL migrations in `src/migrations/` (`V1__`, `V2__`, …)
+- Compose service `mercury_migrate` runs Flyway before `mercury_api`
+- **`solar.manifest.yaml`** at repo root for [sun](https://github.com/ayoub3bidi/sun) scaffolds
 
 ## Architectural Strengths
 
 - Small, traceable codebase with consistent route → controller layout.
-- Explicit SQL migrations; readable seed for local dev.
+- Explicit Flyway SQL migrations; readable seed for local dev.
 - Full Docker dev loop (migrate → api → tests).
 - Auth, admin, and OIDC scaffolding ready to extend.
 - CI covers test, lint, security, build, and tag releases.
@@ -266,4 +259,4 @@ Not run in this shell (use Docker instead):
 
 ## Release Tagging
 
-Tags in this repo use a **`v` prefix** (`v0.3.1`, not `0.3.1`). Pushing `v0.3.2` triggers `.github/workflows/release.yml` to create a GitHub Release with generated notes.
+Tags in this repo use a **`v` prefix** (`v0.4.0`, not `0.4.0`). Pushing `v*` triggers `.github/workflows/release.yml` to create a GitHub Release with generated notes.

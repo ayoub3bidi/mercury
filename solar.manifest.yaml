@@ -1,0 +1,96 @@
+id: mercury
+repo: https://github.com/ayoub3bidi/mercury
+default_ref: v0.4.1
+variables:
+  - name: project_name
+  - name: app_title
+  - name: api_version
+rewrites:
+  - file: .env.dist
+    replacements:
+      - from: "mercury_db"
+        to: "{{.project_name}}_db"
+      - from: "mercury_cache"
+        to: "{{.project_name}}_cache"
+      - from: "POSTGRES_HOST=mercury_db"
+        to: "POSTGRES_HOST={{.project_name}}_db"
+      - from: "POSTGRES_PASSWORD=mercury"
+        to: "POSTGRES_PASSWORD={{.project_name}}"
+      - from: "POSTGRES_USER=mercury"
+        to: "POSTGRES_USER={{.project_name}}"
+      - from: "POSTGRES_DB=mercury"
+        to: "POSTGRES_DB={{.project_name}}"
+      - from: "Mercury API Docs"
+        to: "{{.app_title}}"
+      - from: "Mercury API"
+        to: "{{.app_title}}"
+      - from: '"v1"'
+        to: '"{{.api_version}}"'
+  - file: docker-compose.yml
+    replacements:
+      - from: "mercurydb"
+        to: "{{.project_name}}db"
+      - from: "mercury"
+        to: "{{.project_name}}"
+  - file: src/constants/settings.py
+    replacements:
+      - from: '"mercury_cache"'
+        to: '"{{.project_name}}_cache"'
+  - file: .github/workflows/test.yml
+    replacements:
+      - from: "APP_TITLE=Mercury"
+        to: "APP_TITLE={{.app_title}}"
+      - from: "APP_DESCRIPTION=Mercury API"
+        to: "APP_DESCRIPTION={{.app_title}}"
+      - from: "POSTGRES_HOST=mercury_db"
+        to: "POSTGRES_HOST={{.project_name}}_db"
+      - from: "POSTGRES_DB=mercury"
+        to: "POSTGRES_DB={{.project_name}}"
+      - from: "POSTGRES_USER=mercury"
+        to: "POSTGRES_USER={{.project_name}}"
+      - from: "POSTGRES_PASSWORD=mercury"
+        to: "POSTGRES_PASSWORD={{.project_name}}"
+      - from: "REDIS_HOST=mercury_cache"
+        to: "REDIS_HOST={{.project_name}}_cache"
+  - file: .github/workflows/build.yml
+    replacements:
+      - from: "ayoub3bidi/mercury:latest"
+        to: "ayoub3bidi/{{.project_name}}:latest"
+  - file: README.md
+    replacements:
+      - from: "# Mercury"
+        to: "# {{.app_title}}"
+      - from: "Mercury API Docs"
+        to: "{{.app_title}}"
+      - from: "Mercury API"
+        to: "{{.app_title}}"
+      - from: "mercury_db"
+        to: "{{.project_name}}_db"
+      - from: "mercury_cache"
+        to: "{{.project_name}}_cache"
+      - from: "mercury_migrate"
+        to: "{{.project_name}}_migrate"
+      - from: "mercury_integration_tests"
+        to: "{{.project_name}}_integration_tests"
+      - from: "mercury_unit_tests"
+        to: "{{.project_name}}_unit_tests"
+      - from: "mercury_linter"
+        to: "{{.project_name}}_linter"
+      - from: "mercury_security"
+        to: "{{.project_name}}_security"
+      - from: "ayoub3bidi/mercury"
+        to: "ayoub3bidi/{{.project_name}}"
+features:
+  - name: oidc
+    default: false
+    remove_paths:
+      - src/routes/oidc
+      - src/controllers/oidc
+      - src/utils/oidc.py
+    remove_lines:
+      - file: src/restful_ressources.py
+        pattern: "oidc"
+      - file: .env.dist
+        pattern: "OIDC"
+      - file: .env.dist
+        pattern: "GOOGLE_"

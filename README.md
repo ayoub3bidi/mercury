@@ -9,6 +9,8 @@
     <img src="https://img.shields.io/github/release/ayoub3bidi/mercury">
 </p>
 
+> **Solar Stack** — scaffold a customized copy with one command: see [docs/SOLAR_STACK.md](./docs/SOLAR_STACK.md)
+
 ## Table of content
 
 * [Introduction](#Introduction)
