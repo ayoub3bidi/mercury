@@ -1,8 +1,9 @@
-fastapi[standard]==0.128.0
+fastapi[standard]==0.162.3
 sqlalchemy==2.0.36
 pydantic==2.10.4
 pydantic-settings==2.6.1
 psycopg2-binary==2.9.10
+pyasn1==0.6.5
 redis==6.4.0
 python-jose[cryptography]==3.4.0
 pwdlib[argon2,bcrypt]==0.2.1
