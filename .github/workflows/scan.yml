@@ -58,7 +58,7 @@ jobs:
       - name: Build API image
         run: docker build --target api --tag mercury:ci .
       - name: Scan image with Trivy
-        uses: aquasecurity/trivy-action@0.31.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: mercury:ci
           format: table

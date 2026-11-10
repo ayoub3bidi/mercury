@@ -28,7 +28,7 @@ jobs:
             ayoub3bidi/mercury:latest
             ghcr.io/${{ github.repository_owner }}/mercury:latest
       - name: Scan image with Trivy
-        uses: aquasecurity/trivy-action@0.31.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ayoub3bidi/mercury:latest
           format: table
