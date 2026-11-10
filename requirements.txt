@@ -2,6 +2,7 @@ fastapi[standard]==0.162.3
 sqlalchemy==2.0.36
 pydantic==2.10.4
 pydantic-settings==2.6.1
+starlette==1.10.0
 psycopg2-binary==2.9.10
 pyasn1==0.6.5
 redis==6.4.0
@@ -18,6 +19,6 @@ celery==5.7.0
 langgraph==1.2.20
 langchain-openai==1.7.4
 tenacity==9.2.1
-prometheus-fastapi-instrumentator==7.1.0
+prometheus-fastapi-instrumentator==8.1.0
 opentelemetry-sdk==1.45.2
 opentelemetry-exporter-otlp-proto-grpc==1.45.2
