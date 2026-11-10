@@ -5,7 +5,7 @@ pydantic-settings==2.6.1
 psycopg2-binary==2.9.10
 pyasn1==0.6.5
 redis==6.4.0
-python-jose[cryptography]==3.4.0
+python-jose[cryptography]==3.5.0
 pwdlib[argon2,bcrypt]==0.2.1
 passlib==1.7.4
 python-multipart==0.0.30
