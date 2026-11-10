@@ -1,18 +1,19 @@
 services:
-
   mercury_api:
-    restart: always
     image: mercury_api:latest
     build:
       context: .
       dockerfile: ./Dockerfile
       target: api
-    env_file:
-      - .env
+    env_file: [.env]
+    environment:
+      MERCURY_AGENT_ENABLED: ${MERCURY_AGENT_ENABLED:-false}
+      LLM_BASE_URL: ${LLM_BASE_URL:-http://mercury_mock_llm:9000/v1}
     ports:
-      - "8000:8000"
-    networks:
-      - mercury_api
+      - "${MERCURY_API_PORT:-8000}:8000"
+    networks: [mercury_api]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       mercury_cache:
         condition: service_healthy
@@ -20,8 +21,10 @@ services:
         condition: service_healthy
       mercury_migrate:
         condition: service_completed_successfully
+      mercury_seed_local:
+        condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/v1/health')"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/v1/health/ready', timeout=3)"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -30,9 +33,8 @@ services:
   mercury_cache:
     image: redis:7-alpine
     restart: always
-    container_name: mercury_cache
-    networks:
-      - mercury_api
+    command: ["redis-server", "--databases", "16"]
+    networks: [mercury_api]
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -41,33 +43,30 @@ services:
 
   mercury_migrate:
     image: flyway/flyway:${FLYWAYDB_VERSION:-10-alpine}
-    container_name: mercury_migrate
     volumes:
       - ./src/migrations:/flyway/sql
       - ./flyway.conf:/flyway/conf/flyway.conf
     environment:
-      - FLYWAY_URL=jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
-      - FLYWAY_USER=${POSTGRES_USER}
-      - FLYWAY_PASSWORD=${POSTGRES_PASSWORD}
+      FLYWAY_URL: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+      FLYWAY_USER: ${POSTGRES_USER}
+      FLYWAY_PASSWORD: ${POSTGRES_PASSWORD}
     command: migrate
     depends_on:
       mercury_db:
         condition: service_healthy
-    networks:
-      - mercury_api
+    networks: [mercury_api]
 
   mercury_db:
     image: postgres:16-alpine
-    container_name: mercury_db
     ports:
-      - "5432:5432"
+      - "${MERCURY_DB_PORT:-5432}:5432"
     restart: always
     volumes:
       - mercurydb:/var/lib/postgresql/data
-    env_file:
-      - .env
-    networks:
-      - mercury_api
+    env_file: [.env]
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+    networks: [mercury_api]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
@@ -75,13 +74,61 @@ services:
       retries: 5
       start_period: 10s
 
+  mercury_seed_local:
+    image: mercury_api:latest
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      target: api
+    env_file: [.env]
+    command: ["python", "src/seed_local_admin.py"]
+    depends_on:
+      mercury_migrate:
+        condition: service_completed_successfully
+    networks: [mercury_api]
+
+  mercury_worker:
+    image: mercury_api:latest
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      target: api
+    env_file: [.env]
+    environment:
+      LLM_BASE_URL: ${LLM_BASE_URL:-http://mercury_mock_llm:9000/v1}
+    command: ["celery", "--workdir", "/app/src", "-A", "worker.celery_app:celery_app", "worker", "--loglevel", "INFO"]
+    healthcheck:
+      disable: true
+    profiles: [worker, agent]
+    depends_on:
+      mercury_cache:
+        condition: service_healthy
+      mercury_db:
+        condition: service_healthy
+      mercury_migrate:
+        condition: service_completed_successfully
+    networks: [mercury_api]
+
+  mercury_mock_llm:
+    image: mercury_api:latest
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      target: api
+    env_file: [.env]
+    profiles: [agent]
+    command: ["uvicorn", "agent.mock_llm:app", "--app-dir", "/app/src", "--host", "0.0.0.0", "--port", "9000"]
+    healthcheck:
+      disable: true
+    networks: [mercury_api]
+
   mercury_integration_tests:
+    profiles: [test]
     build:
       context: .
       dockerfile: ./Dockerfile
       target: integration_tests
-    env_file:
-      - .env
+    env_file: [.env]
     depends_on:
       mercury_db:
         condition: service_healthy
@@ -89,34 +136,31 @@ services:
         condition: service_healthy
       mercury_migrate:
         condition: service_completed_successfully
-    networks:
-      - mercury_api
+    networks: [mercury_api]
 
   mercury_unit_tests:
+    profiles: [test]
     build:
       context: .
       dockerfile: ./Dockerfile
       target: unit_tests
-    env_file:
-      - .env
+    env_file: [.env]
 
   mercury_linter:
+    profiles: [test]
     build:
       context: .
       dockerfile: ./Dockerfile
       target: linter
-    env_file:
-      - .env
+    env_file: [.env]
 
   mercury_security:
+    profiles: [test]
     build:
       context: .
       dockerfile: ./Dockerfile
       target: code_scanner
-    volumes:
-      - .:/app
-    env_file:
-      - .env
+    env_file: [.env]
 
 volumes:
   mercurydb:

@@ -38,6 +38,7 @@ This project uses:
 A pre-built API image is published on Docker Hub and updated on each release:
 
 - **Repository:** [ayoub3bidi/mercury](https://hub.docker.com/r/ayoub3bidi/mercury)
+- **GHCR:** [ghcr.io/ayoub3bidi/mercury](https://ghcr.io/ayoub3bidi/mercury)
 
 ```shell
 docker pull ayoub3bidi/mercury:latest
@@ -99,7 +100,6 @@ POSTGRES_PASSWORD=mercury
 POSTGRES_PORT=5432
 POSTGRES_USER=mercury
 POSTGRES_DB=mercury
-POSTGRES_HOST_AUTH_METHOD=trust
 POSTGRES_SIZE_POOL=30
 POSTGRES_MAX_OVERFLOW=10
 POSTGRES_POOL_TIMEOUT=30
@@ -107,10 +107,20 @@ POSTGRES_POOL_RECYCLE=1800
 ## Redis Configuration
 REDIS_HOST=mercury_cache
 REDIS_PORT=6379
+REDIS_CACHE_DB=0
+REDIS_BROKER_DB=1
 ## JWT Configuration
 JWT_SECRET_KEY="mysecretkey"
 JWT_ALGORITHM="HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES=30
+MERCURY_AGENT_ENABLED=false
+LLM_BASE_URL="http://mercury_mock_llm:9000/v1"
+LLM_API_KEY="local"
+RUN_TOKEN_BUDGET=256
+RUN_TIMEOUT_SECONDS=60
+CELERY_TASK_TIME_LIMIT=90
+OTEL_ENABLED=false
+OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:4317"
 ## OIDC Configuration
 OIDC_GOOGLE_CLIENT_ID="changeme"
 OIDC_GOOGLE_CLIENT_SECRET="changeme"
@@ -125,15 +135,17 @@ GOOGLE_USER_INFO_URL="https://www.googleapis.com/oauth2/v1/userinfo"
 docker compose up --build --force-recreate
 ```
 
+This starts the core API, PostgreSQL, Redis, Flyway, and the local-only admin seed step. PostgreSQL uses password authentication; the sample `JWT_SECRET_KEY` is accepted only while `APP_ENV=local`. For secret files, set variables such as `JWT_SECRET_KEY_FILE=/run/secrets/jwt_secret`.
+
 ## Default admin account
 
-Migrations seed one admin user so you can try the API and admin routes right away:
+For local development, the compose startup runs an idempotent seed script that creates one admin user:
 
 | Email           | Password  |
 |-----------------|-----------|
 | test@admin.com  | Cloud.456 |
 
-Get a JWT by calling `POST /v1/token` with form body `username=test@admin.com` and `password=Cloud.456`, then use the returned `access_token` as `Authorization: Bearer <token>` for admin endpoints. Change or remove this user in production.
+Get a JWT by calling `POST /v1/token` with form body `username=test@admin.com` and `password=Cloud.456`, then use the returned `access_token` as `Authorization: Bearer <token>` for admin endpoints. The seed script exits without creating an account unless `APP_ENV=local`.
 
 ## Test the API
 
@@ -151,10 +163,31 @@ This will check the health of the API. The result should be like this:
 {"alive":true, "status":"ok"}
 ```
 
+`GET /v1/health/live` reports process liveness. `GET /v1/health/ready` checks PostgreSQL and Redis and returns `503` when either is unavailable. `/v1/health` remains a compatibility alias. Prometheus metrics are available at `/metrics`. Each response includes an `X-Request-ID` header, and application logs are JSON. OpenTelemetry traces are disabled by default; set `OTEL_ENABLED=true` and configure `OTEL_EXPORTER_OTLP_ENDPOINT` to enable them.
+
+## Optional worker and agent
+
+The worker and agent are opt-in; test and tooling containers use a separate `test` profile.
+
+```shell
+# Core API only
+docker compose up --build
+
+# Worker without agent endpoints
+docker compose --profile worker up --build
+
+# Full local agent experience (uses the included mock OpenAI-compatible server)
+MERCURY_AGENT_ENABLED=true docker compose --profile worker --profile agent up --build
+```
+
+With agent mode enabled, `POST /v1/runs` accepts a prompt and optional `token_budget`; an optional `Idempotency-Key` header prevents duplicate run creation. `GET /v1/runs/{id}` returns queued, running, completed, or failed status. The default `LLM_BASE_URL` points to the local mock. To use Ollama or another OpenAI-compatible service, set `LLM_BASE_URL` and `LLM_API_KEY` in `.env` (for Ollama on the host, use `http://host.docker.internal:11434/v1`).
+
+Cache and Celery broker data use separate Redis databases (`REDIS_CACHE_DB=0`, `REDIS_BROKER_DB=1`), so `FLUSHDB` against the cache connection does not discard queued jobs.
+
 ## Test the database
 
 ```shell
-docker exec -it mercury_db psql -U mercury
+docker compose exec mercury_db psql -U mercury -d mercury
 ```
 
 This command will take inside the postgreSQL database container where you can apply any SQL command you want.
@@ -170,17 +203,16 @@ mercury=# \d
  public | user | table | mercury
 ```
 
-## How to add new SQL migrations ?
-One of the main principles of this project is to `Keep It Simple and Stupid`.  
-That's why we do not have any fancy ORM package installed here.  
-To add a new migration to your project simply add a new SQL file in the `migrations` folder along with the next version number at the beginning of file name. 
+## How to add new SQL migrations
+
+Flyway SQL migrations are the schema source of truth. Add a new file in `src/migrations/` with the next version number (`V{n}__description.sql`). Applied migrations are immutable; use a forward migration for changes. V3 is retained as historical migration data, V4 removes only its unchanged default admin account, and V5 creates the agent runs table.
  
 ```shell
 CREATE TABLE IF NOT EXISTS public.test (
     id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
     name VARCHAR(200)
 );
--- This is an example where we create a test table. The new file name will be "V1.3__add_test_table"
+-- Name the file "V6__add_test_table.sql" after the current V5 migration.
 ```
 
 If you want to know more you can check the [flyway db documentation](https://flywaydb.org).
@@ -193,14 +225,14 @@ One of important things that should be in every project is tests to keeps thing 
 Here's how to run the integration test locally:  
 
 ```shell
-docker compose up --build --abort-on-container-exit mercury_integration_tests
+docker compose --profile test up --build --abort-on-container-exit mercury_integration_tests
 ```
 
 ### Unit tests
 Here's how to run the integration test locally:  
 
 ```shell
-docker compose up --build --abort-on-container-exit mercury_unit_tests
+docker compose --profile test up --build --abort-on-container-exit mercury_unit_tests
 ```
 
 ## Linter
@@ -211,7 +243,7 @@ For the linter we're working with [ruff](https://astral.sh/ruff), a very fast li
 Here's how to run the linter test locally:
 
 ```shell
-docker compose up --build --abort-on-container-exit mercury_linter
+docker compose --profile test up --build --abort-on-container-exit mercury_linter
 ```
 
 ## Security Scan
@@ -219,7 +251,7 @@ docker compose up --build --abort-on-container-exit mercury_linter
 For our project, we're using `bandit`, a tool designed to find common security issues in Python code. Here's how to run it locally:
 
 ```shell
-docker compose up --build --abort-on-container-exit mercury_security
+docker compose --profile test run --build --rm mercury_security
 ```
 
 ## Pre-commit

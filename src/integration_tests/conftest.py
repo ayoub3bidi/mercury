@@ -25,7 +25,7 @@ os.environ.setdefault("ACCESS_TOKEN_EXPIRE_MINUTES", "30")
 # Starlette TestClient uses Host: testserver; must be allowed by TrustedHostMiddleware.
 os.environ["ALLOWED_HOSTS"] = "localhost,127.0.0.1,0.0.0.0,testserver"
 
-import init_test
+import init_test  # noqa: E402
 
 
 def pytest_configure(config):

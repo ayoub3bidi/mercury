@@ -2,7 +2,7 @@ import redis
 
 from constants.settings import settings
 
-redis_connect = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
+redis_connect = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=settings.REDIS_CACHE_DB)
 
 
 def init():

@@ -12,6 +12,8 @@ rewrites:
         to: "{{.project_name}}_db"
       - from: "mercury_cache"
         to: "{{.project_name}}_cache"
+      - from: "http://mercury_mock_llm:9000/v1"
+        to: "http://{{.project_name}}_mock_llm:9000/v1"
       - from: "POSTGRES_HOST=mercury_db"
         to: "POSTGRES_HOST={{.project_name}}_db"
       - from: "POSTGRES_PASSWORD=mercury"
@@ -56,6 +58,14 @@ rewrites:
     replacements:
       - from: "ayoub3bidi/mercury:latest"
         to: "ayoub3bidi/{{.project_name}}:latest"
+      - from: "${{ github.repository_owner }}/mercury:latest"
+        to: "${{ github.repository_owner }}/{{.project_name}}:latest"
+  - file: .gitlab-ci.yml
+    replacements:
+      - from: "ayoub3bidi/mercury:latest"
+        to: "ayoub3bidi/{{.project_name}}:latest"
+      - from: "ghcr.io/$GHCR_USERNAME/mercury:latest"
+        to: "ghcr.io/$GHCR_USERNAME/{{.project_name}}:latest"
   - file: README.md
     replacements:
       - from: "# Mercury"
@@ -80,6 +90,8 @@ rewrites:
         to: "{{.project_name}}_security"
       - from: "ayoub3bidi/mercury"
         to: "ayoub3bidi/{{.project_name}}"
+      - from: "ghcr.io/ayoub3bidi/mercury"
+        to: "ghcr.io/ayoub3bidi/{{.project_name}}"
 features:
   - name: oidc
     default: false

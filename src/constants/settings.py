@@ -1,3 +1,7 @@
+import os
+from pathlib import Path
+from typing import Any
+
 from pydantic import SecretStr, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -8,6 +12,31 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore",
     )
+
+    @classmethod
+    def settings_customise_sources(
+        cls,
+        settings_cls: type[BaseSettings],
+        init_settings: Any,
+        env_settings: Any,
+        dotenv_settings: Any,
+        file_secret_settings: Any,
+    ) -> tuple[Any, ...]:
+        def secret_file_settings() -> dict[str, str]:
+            values: dict[str, str] = {}
+            for name in (
+                "JWT_SECRET_KEY",
+                "POSTGRES_PASSWORD",
+                "OIDC_GOOGLE_CLIENT_SECRET",
+                "LLM_API_KEY",
+            ):
+                path = os.environ.get(f"{name}_FILE")
+                if path:
+                    values[name] = Path(path).read_text(encoding="utf-8").rstrip("\r\n")
+            return values
+
+        # File-backed secrets intentionally override plaintext environment values.
+        return (init_settings, secret_file_settings, env_settings, dotenv_settings, file_secret_settings)
 
     LISTEN_ADDR: str
     LISTEN_PORT: int = 8000
@@ -32,10 +61,23 @@ class Settings(BaseSettings):
 
     REDIS_HOST: str = "mercury_cache"
     REDIS_PORT: int = 6379
+    REDIS_CACHE_DB: int = 0
+    REDIS_BROKER_DB: int = 1
 
     JWT_SECRET_KEY: SecretStr
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+
+    MERCURY_AGENT_ENABLED: bool = False
+    LLM_BASE_URL: str = "http://localhost:11434/v1"
+    LLM_API_KEY: SecretStr = SecretStr("local")
+    RUN_TOKEN_BUDGET: int = 256
+    RUN_TIMEOUT_SECONDS: int = 60
+    CELERY_TASK_TIME_LIMIT: int = 90
+
+    METRICS_ENABLED: bool = True
+    OTEL_ENABLED: bool = False
+    OTEL_EXPORTER_OTLP_ENDPOINT: str = "http://localhost:4317"
 
     GOOGLE_AUTH_URL: str = "https://accounts.google.com/o/oauth2/auth"
     GOOGLE_TOKEN_URL: str = "https://accounts.google.com/o/oauth2/token"

@@ -11,3 +11,7 @@ def import_resources(app):
     app.include_router(google.router, tags=["OIDC"], prefix=f"/{settings.v}/oidc")
     app.include_router(admin_user.router, tags=["Admin"], prefix=f"/{settings.v}/admin/user")
     app.include_router(user.router, tags=["User"], prefix=f"/{settings.v}/user")
+    if settings.MERCURY_AGENT_ENABLED:
+        from routes.runs import router as runs_router
+
+        app.include_router(runs_router, tags=["Runs"], prefix=f"/{settings.v}")
