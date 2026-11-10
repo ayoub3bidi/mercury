@@ -9,8 +9,42 @@ permissions:
   packages: write
 
 jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Create environment file
+        run: |
+          cat << 'ENVFILE' > .env
+          LISTEN_ADDR=0.0.0.0
+          LISTEN_PORT=8000
+          APP_VERSION=1.0
+          APP_TITLE=Mercury
+          APP_DESCRIPTION=Mercury API
+          API_VERSION=v1
+          APP_ENV=local
+          POSTGRES_HOST=mercury_db
+          POSTGRES_PORT=5432
+          POSTGRES_DB=mercury
+          POSTGRES_USER=mercury
+          POSTGRES_PASSWORD=mercury
+          REDIS_HOST=mercury_cache
+          JWT_SECRET_KEY=local-ci-secret
+          JWT_ALGORITHM=HS256
+          ENVFILE
+      - name: Run unit tests
+        run: docker compose --profile test run --build --rm mercury_unit_tests
+      - name: Run integration tests
+        run: docker compose --profile test run --build --rm mercury_integration_tests
+      - name: Run lint
+        run: docker compose --profile test run --build --rm mercury_linter
+      - name: Run Bandit
+        run: docker compose --profile test run --build --rm mercury_security
+
   build-publish:
     runs-on: ubuntu-latest
+    needs: [quality]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

@@ -95,7 +95,7 @@ image_scan:
 image_publish:
   extends: .docker_job
   stage: publish
-  needs: [image_build, image_scan]
+  needs: [lint, unit_test, integration_test, security, image_build, image_scan]
   script:
     - docker load --input mercury-image.tar
     - echo "$DOCKER_HUB_ACCESS_TOKEN" | docker login --username "$DOCKER_HUB_USERNAME" --password-stdin

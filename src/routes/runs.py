@@ -22,7 +22,7 @@ def create_run(
     prompt = payload.prompt.strip()
     if not prompt:
         raise HTTPException(status_code=400, detail="Prompt must not be empty")
-    budget = payload.token_budget or settings.RUN_TOKEN_BUDGET
+    budget = payload.token_budget if payload.token_budget is not None else settings.RUN_TOKEN_BUDGET
     if budget <= 0 or budget > settings.RUN_TOKEN_BUDGET:
         raise HTTPException(status_code=400, detail=f"token_budget must be between 1 and {settings.RUN_TOKEN_BUDGET}")
 
