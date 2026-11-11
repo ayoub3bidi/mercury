@@ -41,6 +41,8 @@ jobs:
         run: docker compose --profile test run --build --rm mercury_linter
       - name: Run Bandit
         run: docker compose --profile test run --build --rm mercury_security
+      - name: Run agent runtime and migration E2E
+        run: ./ci/agent-e2e.sh
 
   build-publish:
     runs-on: ubuntu-latest

@@ -13,12 +13,37 @@ jobs:
     name: Release pushed tag
     runs-on: ubuntu-22.04
     steps:
+      - uses: actions/checkout@v4
+
       - name: Create release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.ref_name }}
+        shell: bash
         run: |
+          notes_file="${RUNNER_TEMP}/release-notes.md"
+          python3 - "$tag" CHANGELOG.md > "$notes_file" <<'PY'
+          import re
+          import sys
+          from pathlib import Path
+
+          tag, path = sys.argv[1:]
+          text = Path(path).read_text()
+          headings = list(re.finditer(r"^## \[(?:v)?([^]]+)\].*$", text, re.MULTILINE))
+          for index, heading in enumerate(headings):
+              if heading.group(1) == tag.removeprefix("v"):
+                  start = heading.end() + 1
+                  end = headings[index + 1].start() if index + 1 < len(headings) else len(text)
+                  notes = text[start:end].strip()
+                  if not notes:
+                      raise SystemExit(f"No release notes found for {tag}")
+                  print(notes)
+                  break
+          else:
+              raise SystemExit(f"No changelog section found for {tag}")
+          PY
           gh release create "$tag" \
               --repo="$GITHUB_REPOSITORY" \
               --title="${tag#v}" \
-              --generate-notes
+              --verify-tag \
+              --notes-file "$notes_file"

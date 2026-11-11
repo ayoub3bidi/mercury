@@ -1,6 +1,6 @@
 id: mercury
 repo: https://github.com/ayoub3bidi/mercury
-default_ref: v0.4.1
+default_ref: v0.4.2
 variables:
   - name: project_name
   - name: app_title
